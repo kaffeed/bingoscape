@@ -23,12 +23,13 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))
 
-	store, err := db.NewStore(os.Getenv("DB"))
+	store, err := db.NewStore(os.Getenv("DB"))_
 	if err != nil {
 		e.Logger.Fatalf("failed to create store: %s", err)
 	}
 
 	userservice := services.NewUserServices(services.User{}, store)
+	userservice.CreateUser(services.User{})
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hallo, welt!")
