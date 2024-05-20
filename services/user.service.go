@@ -1,11 +1,11 @@
 package services
 
 import (
-	"github.com/kaffeed/topez-bingomania/db"
+	"github.com/kaffeed/bingoscape/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func NewUserServices(u User, store db.Store) *UserServices {
+func NewUserServices(store db.Store) *UserServices {
 	return &UserServices{
 		UserStore: store,
 	}
@@ -29,41 +29,43 @@ func (us *UserServices) CreateUser(u User) error {
 		return err
 	}
 
-	stmt := `INSERT INTO users(password, username) VALUES($1, $2, $3)`
+	stmt := `INSERT INTO users(password, username, ismanagement) VALUES($1, $2, $3)`
 
 	_, err = us.UserStore.Db.Exec(
 		stmt,
 		string(hashedPassword),
 		u.Username,
+		u.IsManagement,
 	)
 
 	return err
 }
 
-// func (us *UserServices) CheckEmail(email string) (User, error) {
-//
-// 	query := `SELECT id, email, password, username FROM users
-// 		WHERE email = ?`
-//
-// 	stmt, err := us.UserStore.Db.Prepare(query)
-// 	if err != nil {
-// 		return User{}, err
-// 	}
-//
-// 	defer stmt.Close()
-//
-// 	us.User.Email = email
-// 	err = stmt.QueryRow(
-// 		us.User.Email,
-// 	).Scan(
-// 		&us.User.ID,
-// 		&us.User.Email,
-// 		&us.User.Password,
-// 		&us.User.Username,
-// 	)
-// 	if err != nil {
-// 		return User{}, err
-// 	}
-//
-// 	return us.User, nil
-// }
+func (us *UserServices) CheckUsername(username string) (User, error) {
+
+	query := `SELECT id, password, username FROM users
+		WHERE username = ?`
+
+	stmt, err := us.UserStore.Db.Prepare(query)
+	if err != nil {
+		return User{}, err
+	}
+
+	defer stmt.Close()
+
+	// us.User.Email = email
+	// err = stmt.QueryRow(
+	// 	us.User.Email,
+	// ).Scan(
+	// 	&us.User.ID,
+	// 	&us.User.Email,
+	// 	&us.User.Password,
+	// 	&us.User.Username,
+	// )
+
+	// if err != nil {
+	// 	return User{}, err
+	// }
+
+	return User{}, nil // TODO:
+}

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kaffeed/topez-bingomania/services"
-	authviews "github.com/kaffeed/topez-bingomania/views/auth"
+	"github.com/kaffeed/bingoscape/services"
+	authviews "github.com/kaffeed/bingoscape/views/auth"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/a-h/templ"
@@ -28,12 +28,11 @@ const (
 
 type AuthService interface {
 	CreateUser(u services.User) error
-	CheckEmail(email string) (services.User, error)
+	CheckUsername(username string) (services.User, error)
 	// GetUserById(id int) (services.User, error)
 }
 
 func NewAuthHandler(us AuthService) *AuthHandler {
-
 	return &AuthHandler{
 		UserServices: us,
 	}
@@ -44,9 +43,9 @@ type AuthHandler struct {
 }
 
 func (ah *AuthHandler) homeHandler(c echo.Context) error {
-	fromProtected, ok := c.Get("FROMPROTECTED").(bool)
+	fromProtected, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
-		return errors.New("invalid type for key 'FROMPROTECTED'")
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
 	}
 	homeView := authviews.Home(fromProtected)
 	// isError = false
@@ -64,61 +63,61 @@ func (ah *AuthHandler) homeHandler(c echo.Context) error {
 	))
 }
 
-func (ah *AuthHandler) registerHandler(c echo.Context) error {
-	fromProtected, ok := c.Get("FROMPROTECTED").(bool)
-	if !ok {
-		return errors.New("invalid type for key 'FROMPROTECTED'")
-	}
-	registerView := authviews.Register(fromProtected)
-	// isError = false
-	c.Set("ISERROR", false)
-
-	if c.Request().Method == "POST" {
-		user := services.User{
-			Password: c.FormValue("password"),
-			Username: c.FormValue("username"),
-		}
-
-		err := ah.UserServices.CreateUser(user)
-		if err != nil {
-			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-				err = errors.New("the email is already in use")
-				setFlashmessages(c, "error", fmt.Sprintf(
-					"something went wrong: %s",
-					err,
-				))
-
-				return c.Redirect(http.StatusSeeOther, "/register")
-			}
-
-			return echo.NewHTTPError(
-				echo.ErrInternalServerError.Code,
-				fmt.Sprintf(
-					"something went wrong: %s",
-					err,
-				))
-		}
-
-		setFlashmessages(c, "success", "You have successfully registered!!")
-
-		return c.Redirect(http.StatusSeeOther, "/login")
-	}
-
-	return renderView(c, authviews.RegisterIndex(
-		"| Register",
-		"",
-		fromProtected,
-		c.Get("ISERROR").(bool),
-		getFlashmessages(c, "error"),
-		getFlashmessages(c, "success"),
-		registerView,
-	))
-}
+// func (ah *AuthHandler) registerHandler(c echo.Context) error {
+// 	fromProtected, ok := c.Get("").(bool)
+// 	if !ok {
+// 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+// 	}
+// 	registerView := authviews.Register(fromProtected)
+// 	// isError = false
+// 	c.Set("ISERROR", false)
+//
+// 	if c.Request().Method == "POST" {
+// 		user := services.User{
+// 			Password: c.FormValue("password"),
+// 			Username: c.FormValue("username"),
+// 		}
+//
+// 		err := ah.UserServices.CreateUser(user)
+// 		if err != nil {
+// 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+// 				err = errors.New("the email is already in use")
+// 				setFlashmessages(c, "error", fmt.Sprintf(
+// 					"something went wrong: %s",
+// 					err,
+// 				))
+//
+// 				return c.Redirect(http.StatusSeeOther, "/register")
+// 			}
+//
+// 			return echo.NewHTTPError(
+// 				echo.ErrInternalServerError.Code,
+// 				fmt.Sprintf(
+// 					"something went wrong: %s",
+// 					err,
+// 				))
+// 		}
+//
+// 		setFlashmessages(c, "success", "You have successfully registered!!")
+//
+// 		return c.Redirect(http.StatusSeeOther, "/login")
+// 	}
+//
+// 	return renderView(c, authviews.RegisterIndex(
+// 		"| Register",
+// 		"",
+// 		fromProtected,
+// 		c.Get("ISERROR").(bool),
+// 		getFlashmessages(c, "error"),
+// 		getFlashmessages(c, "success"),
+// 		registerView,
+// 	))
+// }
 
 func (ah *AuthHandler) loginHandler(c echo.Context) error {
-	isAuthenticated, ok := c.Get("FROMPROTECTED").(bool)
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
-		return errors.New("invalid type for key 'FROMPROTECTED'")
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
 	}
 	loginView := authviews.Login(isAuthenticated)
 	// isError = false
@@ -132,7 +131,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		}
 
 		// Authentication goes here
-		user, err := ah.UserServices.CheckEmail(c.FormValue("email"))
+		user, err := ah.UserServices.CheckUsername(c.FormValue("username"))
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows in result set") {
 				setFlashmessages(c, "error", "There is no user with that email")
@@ -171,7 +170,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		// their ID and the client's time zone
 		sess.Values = map[interface{}]interface{}{
 			auth_key:     true,
-			user_id_key:  user.ID,
+			user_id_key:  user.Id,
 			username_key: user.Username,
 			tzone_key:    tzone,
 		}
@@ -182,7 +181,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/todo/list")
 	}
 
-	return renderView(c, auth_views.LoginIndex(
+	return renderView(c, authviews.LoginIndex(
 		"| Login",
 		"",
 		isAuthenticated,
@@ -198,12 +197,12 @@ func (ah *AuthHandler) flagsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		sess, _ := session.Get(auth_sessions_key, c)
 		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
 			// fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
-			c.Set("FROMPROTECTED", false)
+			c.Set("ISAUTHENTICATED", false)
 
 			return next(c)
 		}
 
-		c.Set("FROMPROTECTED", true)
+		c.Set("ISAUTHENTICATED", true)
 
 		return next(c)
 	}
@@ -215,7 +214,7 @@ func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
 			// fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
 			// fromProtected = false
-			c.Set("FROMPROTECTED", false)
+			c.Set("ISAUTHENTICATED", false)
 
 			return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Please provide valid credentials")
 		}
@@ -233,7 +232,7 @@ func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// fromProtected = true
-		c.Set("FROMPROTECTED", true)
+		c.Set("ISAUTHENTICATED", true)
 
 		return next(c)
 	}
