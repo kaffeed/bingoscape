@@ -20,6 +20,8 @@ bin/
 tmp/
 node_modules/
 
+*templ.txt
+
 package-lock.json
 
 # Go workspace file

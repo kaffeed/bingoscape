@@ -17,7 +17,7 @@ templ Navbar(username string, isAuthenticated bool) {
 				</a>
 				<button
 					hx-swap="transition:true"
-					hx-post="/todo/logout"
+					hx-post="/bingoscape/logout"
 					hx-confirm="Are you sure you want to log out?"
 					hx-target="body"
 					hx-push-url="true"
@@ -26,9 +26,6 @@ templ Navbar(username string, isAuthenticated bool) {
 					Logout
 				</button>
 			} else {
-				<a hx-swap="transition:true" class="btn btn-ghost text-lg" href="/register">
-					Register
-				</a>
 				<a hx-swap="transition:true" class="btn btn-ghost text-lg" href="/login">
 					Login
 				</a>

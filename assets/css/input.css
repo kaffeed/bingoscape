@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    font-family: "runescape", system-ui, sans-serif;
+  }
+}
 
 @keyframes fade-in {
     from {

@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['Courier Prime', 'monospace'],
+        mono: ['runescape'],
       }
     },
   },
