@@ -18,6 +18,9 @@
 # vendor/
 bin/
 tmp/
+node_modules/
+
+package-lock.json
 
 # Go workspace file
 go.work
