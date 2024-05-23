@@ -10,7 +10,6 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	// e.GET("/register", ah.flagsMiddleware(ah.registerHandler))
 	// e.POST("/register", ah.flagsMiddleware(ah.registerHandler))
 
-	// protectedGroup := e.Group("/bingo", authHandlers.authMiddleware)
 	// /* ↓ Protected Routes ↓ */
 	// protectedGroup.GET("/list", th.todoListHandler)
 	// protectedGroup.GET("/create", th.createTodoHandler)

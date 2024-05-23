@@ -808,6 +808,10 @@ html {
   font-family: "runescape", system-ui, sans-serif;
 }
 
+.rs {
+  color: #f8fe08
+}
+
 *, ::before, ::after{
   --tw-border-spacing-x: 0;
   --tw-border-spacing-y: 0;

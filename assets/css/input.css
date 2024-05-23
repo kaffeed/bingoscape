@@ -7,6 +7,13 @@
   html {
     font-family: "runescape", system-ui, sans-serif;
   }
+
+    .rs {
+        color: #f8fe08
+    }
+
+
+
 }
 
 @keyframes fade-in {

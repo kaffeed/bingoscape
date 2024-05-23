@@ -42,16 +42,17 @@ func (us *UserServices) CreateUser(u User) error {
 }
 
 func (us *UserServices) CheckUsername(username string) (User, error) {
-	if username == "ansaschubert" {
-		hashed, _ := bcrypt.GenerateFromPassword([]byte("blabla"), 8)
-		return User{
-			Id:           0,
-			Password:     string(hashed),
-			Username:     username,
-			IsManagement: true,
-		}, nil
-	}
-
+	// if username == "ansaschubert" {
+	// 	hashed, _ := bcrypt.GenerateFromPassword([]byte("blabla"), 8)
+	// 	fmt.Printf("Password: %s\n", string(hashed))
+	// 	return User{
+	// 		Id:           0,
+	// 		Password:     string(hashed),
+	// 		Username:     username,
+	// 		IsManagement: true,
+	// 	}, nil
+	// }
+	//
 	query := `SELECT id, password, username, isManagement FROM bingousers
 		WHERE username = ?`
 

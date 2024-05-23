@@ -1,3 +1,8 @@
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 PACKAGES := $(shell go list ./...)
 name := $(shell basename ${PWD})
 
@@ -52,10 +57,27 @@ css:
 css-watch:
 	npx tailwindcss -i assets/css/input.css -o assets/css/styles.css --watch
 
+## templ: generate templ
 .PHONY: templ
 templ:
 	templ generate
 
+## templ-watch: generate templ and watch for changes
 .PHONY: templ-watch
 templ-watch:
 	templ generate --watch
+
+## migration-up: migrate database-up
+.PHONY: migration-up
+migration-up: 
+	migrate -path db/migrations/ -database ${DB} -verbose up
+
+## migration-down: run migrate database-down
+.PHONY: migration-down
+migration-down: 
+	migrate -path db/migrations/ -database ${DB} -verbose down
+
+## migration-fix: force db version
+.PHONY: migration-fix
+migration-fix: 
+	migrate -path db/migrations/ -database "${DB}" force ${version}

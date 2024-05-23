@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS users (
+	id SERIAL PRIMARY KEY,
+	password VARCHAR(255) NOT NULL,
+	username VARCHAR(64) NOT NULL,
+	isManagement bool NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bingos(
+	id SERIAL PRIMARY KEY,
+	title VARCHAR(255) NOT NULL,
+	startDate DATE NOT NULL,
+	endDate bool NOT NULL
+);
