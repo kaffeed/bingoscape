@@ -20,7 +20,8 @@ bin/
 tmp/
 node_modules/
 
-*templ.txt
+**/*templ.txt
+**/*_templ.go
 
 package-lock.json
 
