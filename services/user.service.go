@@ -53,8 +53,8 @@ func (us *UserServices) CheckUsername(username string) (User, error) {
 	// 	}, nil
 	// }
 	//
-	query := `SELECT id, password, username, isManagement FROM bingousers
-		WHERE username = ?`
+	query := `SELECT id, password, username, isManagement FROM users
+		WHERE username = $1`
 
 	stmt, err := us.UserStore.Db.Prepare(query)
 	if err != nil {
@@ -63,19 +63,20 @@ func (us *UserServices) CheckUsername(username string) (User, error) {
 
 	defer stmt.Close()
 
+	u := User{}
 	us.User.Username = username
 	err = stmt.QueryRow(
 		us.User.Username,
 	).Scan(
-		&us.User.Id,
-		&us.User.Password,
-		&us.User.Username,
-		&us.User.IsManagement,
+		&u.Id,
+		&u.Password,
+		&u.Username,
+		&u.IsManagement,
 	)
 
 	if err != nil {
 		return User{}, err
 	}
 
-	return User{}, nil // TODO:
+	return u, nil // TODO:
 }

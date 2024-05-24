@@ -1,2 +1,6 @@
-drop table users;
-drop table bingos;
+drop table public.submission_images;
+drop table public.submissions;
+drop table public.tiles;
+drop table public.bingos_logins;
+drop table public.logins;
+drop table public.bingos;
