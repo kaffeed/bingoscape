@@ -19,7 +19,6 @@ type User struct {
 }
 
 type UserServices struct {
-	User      User
 	UserStore db.Store
 }
 
@@ -42,19 +41,9 @@ func (us *UserServices) CreateUser(u User) error {
 }
 
 func (us *UserServices) CheckUsername(username string) (User, error) {
-	// if username == "ansaschubert" {
-	// 	hashed, _ := bcrypt.GenerateFromPassword([]byte("blabla"), 8)
-	// 	fmt.Printf("Password: %s\n", string(hashed))
-	// 	return User{
-	// 		Id:           0,
-	// 		Password:     string(hashed),
-	// 		Username:     username,
-	// 		IsManagement: true,
-	// 	}, nil
-	// }
-	//
-	query := `SELECT id, password, username, isManagement FROM users
-		WHERE username = $1`
+
+	query := `SELECT id, password, name, is_management FROM logins
+		WHERE name = $1`
 
 	stmt, err := us.UserStore.Db.Prepare(query)
 	if err != nil {
@@ -64,9 +53,8 @@ func (us *UserServices) CheckUsername(username string) (User, error) {
 	defer stmt.Close()
 
 	u := User{}
-	us.User.Username = username
 	err = stmt.QueryRow(
-		us.User.Username,
+		username,
 	).Scan(
 		&u.Id,
 		&u.Password,

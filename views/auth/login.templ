@@ -90,8 +90,8 @@ templ Login(isAuthenticated bool) {
 	</section>
 }
 
-templ LoginIndex(title, username string, isAuthenticated, isError bool, errMsgs, sucMsgs []string, cmp templ.Component) {
-	@layout.Base(title, username, isAuthenticated, isError, errMsgs, sucMsgs) {
+templ LoginIndex(title, username string, isAuthenticated, isManagement, isError bool, errMsgs, sucMsgs []string, cmp templ.Component) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
 		@cmp
 	}
 }

@@ -1,6 +1,6 @@
-package partials
+package components
 
-templ Navbar(username string, isAuthenticated bool) {
+templ Navbar(username string, isAuthenticated, isManagement bool) {
 	<nav class="navbar bg-base-100">
 		<div class="flex-1">
 			<a hx-swap="transition:true" class="btn btn-ghost text-xl" href="/">
@@ -12,6 +12,11 @@ templ Navbar(username string, isAuthenticated bool) {
 				<span class="font-bold text-indigo-700 mr-8 rs">
 					{ username }
 				</span>
+				if isManagement {
+					<a hx-swap="transition:true" class="btn btn-ghost text-lg rs" href="/bingos/register">
+						Create Team
+					</a>
+				}
 				<a hx-swap="transition:true" class="btn btn-ghost text-lg rs" href="/todo/list">
 					Bingos
 				</a>

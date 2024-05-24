@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS public.bingos
     id serial NOT NULL,
     title character varying(255) NOT NULL,
     "from" date NOT NULL,
-    "to" date,
+    "to" date NOT NULL,
+    size integer,
     PRIMARY KEY (id)
 );
 

@@ -23,6 +23,7 @@ const (
 	user_id_key       string = "user_id"
 	username_key      string = "username"
 	tzone_key         string = "time_zone"
+	mgmnt_key         string = "is_management"
 )
 
 /********** Handlers for Auth Views **********/
@@ -49,19 +50,76 @@ func (ah *AuthHandler) homeHandler(c echo.Context) error {
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
 	}
-	homeView := authviews.Home(isAuthenticated, []string{"Test"})
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+	homeView := authviews.Home(isAuthenticated)
 	c.Set("ISERROR", false)
 	// fmt.Printf("\033[31mFROMPROTECTED = %t\n\033[0m", fromProtected)
 
-	return renderView(c, authviews.HomeIndex(
+	return render(c, authviews.HomeIndex(
 		"| Home",
 		"",
 		isAuthenticated,
+		isManagement,
 		c.Get("ISERROR").(bool),
 		getFlashmessages(c, "error"),
 		getFlashmessages(c, "success"),
 		homeView,
 	))
+}
+
+func (ah *AuthHandler) flagsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		sess, _ := session.Get(auth_sessions_key, c)
+
+		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
+			fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
+			c.Set("ISAUTHENTICATED", false)
+			c.Set(mgmnt_key, false)
+
+			return next(c)
+		}
+
+		if mgmt, ok := sess.Values[mgmnt_key].(bool); ok && mgmt {
+			c.Set(mgmnt_key, true)
+		}
+
+		c.Set("ISAUTHENTICATED", true)
+
+		return next(c)
+	}
+}
+
+func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		sess, _ := session.Get(auth_sessions_key, c)
+		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
+			// fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
+			// fromProtected = false
+			c.Set("ISAUTHENTICATED", false)
+
+			return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Please provide valid credentials")
+		}
+
+		if userId, ok := sess.Values[user_id_key].(int); ok && userId != 0 {
+			c.Set(user_id_key, userId) // set the user_id in the context
+		}
+
+		if username, ok := sess.Values[username_key].(string); ok && len(username) != 0 {
+			c.Set(username_key, username) // set the username in the context
+		}
+
+		if tzone, ok := sess.Values[tzone_key].(string); ok && len(tzone) != 0 {
+			c.Set(tzone_key, tzone) // set the client's time zone in the context
+		}
+
+		if isManagement, ok := sess.Values[mgmnt_key].(bool); ok && isManagement {
+			c.Set(mgmnt_key, isManagement) // set the client's time zone in the context
+		}
+		// fromProtected = true
+		c.Set("ISAUTHENTICATED", true)
+
+		return next(c)
+	}
 }
 
 // func (ah *AuthHandler) registerHandler(c echo.Context) error {
@@ -124,6 +182,10 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 	// isError = false
 	c.Set("ISERROR", false)
 
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		isManagement = false
+	}
 	if c.Request().Method == "POST" {
 		// obtaining the time zone from the POST request of the login form
 		tzone := ""
@@ -174,6 +236,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 			user_id_key:  user.Id,
 			username_key: user.Username,
 			tzone_key:    tzone,
+			mgmnt_key:    user.IsManagement,
 		}
 
 		log.Printf("Session from loginHandler: %+v", sess)
@@ -186,64 +249,16 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/")
 	}
 
-	return renderView(c, authviews.LoginIndex(
+	return render(c, authviews.LoginIndex(
 		"| Login",
 		"",
 		isAuthenticated,
+		isManagement,
 		c.Get("ISERROR").(bool),
 		getFlashmessages(c, "error"),
 		getFlashmessages(c, "success"),
 		loginView,
 	))
-}
-
-func (ah *AuthHandler) flagsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		sess, _ := session.Get(auth_sessions_key, c)
-
-		log.Printf("Session: %+v", sess)
-		log.Printf("Session values from flags middleware: %+v", sess.Values)
-		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
-			fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
-			c.Set("ISAUTHENTICATED", false)
-
-			return next(c)
-		}
-
-		c.Set("ISAUTHENTICATED", true)
-
-		return next(c)
-	}
-}
-
-func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		sess, _ := session.Get(auth_sessions_key, c)
-		if auth, ok := sess.Values[auth_key].(bool); !ok || !auth {
-			// fmt.Printf("\033[36m Ok=%t, Auth=%t \n\033[0m", ok, auth)
-			// fromProtected = false
-			c.Set("ISAUTHENTICATED", false)
-
-			return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Please provide valid credentials")
-		}
-
-		if userId, ok := sess.Values[user_id_key].(int); ok && userId != 0 {
-			c.Set(user_id_key, userId) // set the user_id in the context
-		}
-
-		if username, ok := sess.Values[username_key].(string); ok && len(username) != 0 {
-			c.Set(username_key, username) // set the username in the context
-		}
-
-		if tzone, ok := sess.Values[tzone_key].(string); ok && len(tzone) != 0 {
-			c.Set(tzone_key, tzone) // set the client's time zone in the context
-		}
-
-		// fromProtected = true
-		c.Set("ISAUTHENTICATED", true)
-
-		return next(c)
-	}
 }
 
 func (ah *AuthHandler) logoutHandler(c echo.Context) error {
@@ -254,6 +269,7 @@ func (ah *AuthHandler) logoutHandler(c echo.Context) error {
 		user_id_key:  "",
 		username_key: "",
 		tzone_key:    "",
+		mgmnt_key:    false,
 	}
 	sess.Save(c.Request(), c.Response())
 
@@ -265,7 +281,7 @@ func (ah *AuthHandler) logoutHandler(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/login")
 }
 
-func renderView(c echo.Context, cmp templ.Component) error {
+func render(c echo.Context, cmp templ.Component) error {
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
 
 	return cmp.Render(c.Request().Context(), c.Response().Writer)

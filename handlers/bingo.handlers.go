@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/kaffeed/bingoscape/services"
+	components "github.com/kaffeed/bingoscape/views/components"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,4 +24,15 @@ func (bh *BingoHandler) handleGetActiveBingo(c echo.Context) error {
 	}
 
 	return nil
+}
+
+func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		isManagement = false
+	}
+	bingos, _ := bh.BingoService.GetBingos()
+	bingoTable := components.BingoTable(isManagement, bingos)
+
+	return render(c, bingoTable)
 }

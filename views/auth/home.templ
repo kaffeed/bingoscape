@@ -2,7 +2,7 @@ package auth
 
 import "github.com/kaffeed/bingoscape/views/layout"
 
-templ Home(isAuthenticated bool, bingos []string) {
+templ Home(isAuthenticated bool) {
 	<section class="mx-auto w-fit flex flex-col gap-8 text-center">
 		<h1 class="text-5xl font-bold rs">BingoScape</h1>
 		<p class="text-2xl font-thin rs">
@@ -21,42 +21,7 @@ templ Home(isAuthenticated bool, bingos []string) {
 				</a>
 			</footer>
 		} else {
-			<div class="overflow-x-auto">
-				<table class="table">
-					<!-- head -->
-					<thead>
-						<tr>
-							<th></th>
-							<th>Name</th>
-							<th>Job</th>
-							<th>Favorite Color</th>
-						</tr>
-					</thead>
-					<tbody>
-						<!-- row 1 -->
-						<tr class="bg-base-200">
-							<th>1</th>
-							<td>Cy Ganderton</td>
-							<td>Quality Control Specialist</td>
-							<td>Blue</td>
-						</tr>
-						<!-- row 2 -->
-						<tr>
-							<th>2</th>
-							<td>Hart Hagerty</td>
-							<td>Desktop Support Technician</td>
-							<td>Purple</td>
-						</tr>
-						<!-- row 3 -->
-						<tr>
-							<th>3</th>
-							<td>Brice Swyre</td>
-							<td>Tax Accountant</td>
-							<td>Red</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
+			<div hx-get="/bingos/list" hx-trigger="load" hx-swap="outerHTML"></div>
 		}
 	</section>
 }
@@ -65,11 +30,12 @@ templ HomeIndex(
 	title,
 	username string,
 	isAuthenticated bool,
+	isManagement bool,
 	isError bool,
 	errMsgs, sucMsgs []string,
 	cmp templ.Component,
 ) {
-	@layout.Base(title, username, isAuthenticated, isError, errMsgs, sucMsgs) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
 		@cmp
 	}
 }

@@ -1,0 +1,73 @@
+package components
+
+import "github.com/kaffeed/bingoscape/services"
+import "fmt"
+
+templ BingoTable(isManagement bool, bingos []services.Bingo) {
+	<div class="overflow-x-auto">
+		<table class="table">
+			<thead>
+				<tr>
+					<th></th>
+					<th>
+						id
+					</th>
+					<th>Title</th>
+					<th>From</th>
+					<th>To</th>
+					<th>Size</th>
+					if isManagement {
+						<th></th>
+					}
+				</tr>
+			</thead>
+			<tbody>
+				for _,bingo := range bingos {
+					@BingoDetail(bingo, isManagement)
+				}
+			</tbody>
+			<!-- foot -->
+			<tfoot>
+				<tr>
+					<th></th>
+					<th>
+						id
+					</th>
+					<th>Title</th>
+					<th>From</th>
+					<th>To</th>
+					<th>Size</th>
+					if isManagement {
+						<th></th>
+					}
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+}
+
+templ BingoDetail(bingo services.Bingo, isManagement bool) {
+	<tr>
+		<td></td>
+		<td>
+			<div class="font-bold">{ fmt.Sprintf("%d", bingo.Id) }</div>
+		</td>
+		<td>
+			<div class="font-bold">{ bingo.Title }</div>
+		</td>
+		<td>
+			<div class="font-bold">{ bingo.From.Format("2006-01-02T15:04:05.000Z") }</div>
+		</td>
+		<td>
+			<div class="font-bold">{ bingo.To.Format("2006-01-02T15:04:05.000Z") }</div>
+		</td>
+		<td>
+			<span class="badge badge-ghost badge-sm">{ fmt.Sprintf("%d x %d", bingo.Size, bingo.Size) }</span>
+		</td>
+		if isManagement {
+			<th>
+				<button class="btn btn-ghost btn-xs">details</button>
+			</th>
+		}
+	</tr>
+}
