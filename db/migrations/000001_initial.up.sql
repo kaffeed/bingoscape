@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS public.bingos
 
 CREATE TABLE IF NOT EXISTS public.bingos_logins
 (
-    bingos_id serial NOT NULL,
-    logins_id serial NOT NULL
+    bingo_id serial NOT NULL,
+    login_id serial NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS public.tiles

@@ -32,8 +32,8 @@ func (bs *BingoService) GetBingos(isManagement bool, userId int) ([]Bingo, error
 		query = `SELECT b.id, b.title, b.validFrom, b.validTo, b.size FROM bingos b`
 	} else {
 		query = `SELECT b.id, b.title, b.validFrom, b.validTo, b.size FROM bingos b
-		JOIN bingos_logins bl ON b.id = bl.bingos_id
-		JOIN logins l ON bl.logins_id = l.id
+		JOIN bingos_logins bl ON b.id = bl.bingo_id
+		JOIN logins l ON bl.login_id = l.id
 		WHERE b.id = $1`
 	}
 
@@ -41,7 +41,6 @@ func (bs *BingoService) GetBingos(isManagement bool, userId int) ([]Bingo, error
 	if err != nil {
 		return []Bingo{}, err
 	}
-
 	defer stmt.Close()
 
 	bingos := make([]Bingo, 0)
