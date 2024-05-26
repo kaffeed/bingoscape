@@ -56,10 +56,10 @@ templ BingoDetail(bingo services.Bingo, isManagement bool) {
 			<div class="font-bold">{ bingo.Title }</div>
 		</td>
 		<td>
-			<div class="font-bold">{ bingo.From.Format("2006-01-02T15:04:05.000Z") }</div>
+			<div class="font-bold">{ bingo.From.Format("2006-01-02") }</div>
 		</td>
 		<td>
-			<div class="font-bold">{ bingo.To.Format("2006-01-02T15:04:05.000Z") }</div>
+			<div class="font-bold">{ bingo.To.Format("2006-01-02") }</div>
 		</td>
 		<td>
 			<span class="badge badge-ghost badge-sm">{ fmt.Sprintf("%d x %d", bingo.Size, bingo.Size) }</span>

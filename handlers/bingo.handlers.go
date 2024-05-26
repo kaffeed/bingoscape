@@ -31,7 +31,8 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 	if !ok {
 		isManagement = false
 	}
-	bingos, _ := bh.BingoService.GetBingos()
+	u := c.Get(user_id_key).(int)
+	bingos, _ := bh.BingoService.GetBingos(isManagement, u)
 	bingoTable := components.BingoTable(isManagement, bingos)
 
 	return render(c, bingoTable)
