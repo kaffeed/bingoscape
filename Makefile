@@ -70,12 +70,12 @@ templ-watch:
 ## migration-up: migrate database-up
 .PHONY: migration-up
 migration-up: 
-	migrate -path db/migrations/ -database ${DB} -verbose up
+	migrate -path db/migrations/ -database "${DB}" -verbose up
 
 ## migration-down: run migrate database-down
 .PHONY: migration-down
 migration-down: 
-	migrate -path db/migrations/ -database ${DB} -verbose down
+	migrate -path db/migrations/ -database "${DB}" -verbose down
 
 ## migration-fix: force db version
 .PHONY: migration-fix

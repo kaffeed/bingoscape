@@ -5,8 +5,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func NewUserServices(store db.Store) *UserServices {
-	return &UserServices{
+func NewUserServices(store db.Store) *UserService {
+	return &UserService{
 		UserStore: store,
 	}
 }
@@ -18,11 +18,11 @@ type User struct {
 	IsManagement bool   `json:"is_management,omitempty"`
 }
 
-type UserServices struct {
+type UserService struct {
 	UserStore db.Store
 }
 
-func (us *UserServices) CreateUser(u User) error {
+func (us *UserService) CreateUser(u User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (us *UserServices) CreateUser(u User) error {
 	return err
 }
 
-func (us *UserServices) CheckUsername(username string) (User, error) {
+func (us *UserService) CheckUsername(username string) (User, error) {
 
 	query := `SELECT id, password, name, is_management FROM logins
 		WHERE name = $1`

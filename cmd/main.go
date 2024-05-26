@@ -29,11 +29,11 @@ func main() {
 		e.Logger.Fatalf("failed to create store: %s", err)
 	}
 
-	userservice := services.NewUserServices(store)
+	us := services.NewUserServices(store)
 	// userservice.CreateUser(services.User{})
-	authhandler := handlers.NewAuthHandler(userservice)
-	bingoservice := services.NewBingoService(store)
-	bingohandler := handlers.NewBingoHandler(bingoservice)
+	authhandler := handlers.NewAuthHandler(us)
+	bs := services.NewBingoService(store)
+	bingohandler := handlers.NewBingoHandler(bs, us)
 
 	handlers.SetupRoutes(e, authhandler, bingohandler)
 

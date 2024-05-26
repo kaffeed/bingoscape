@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.submission_images
 );
 
 ALTER TABLE IF EXISTS public.bingos_logins
-    ADD FOREIGN KEY (bingos_id)
+    ADD FOREIGN KEY (bingo_id)
     REFERENCES public.bingos (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
@@ -61,7 +61,7 @@ ALTER TABLE IF EXISTS public.bingos_logins
 
 
 ALTER TABLE IF EXISTS public.bingos_logins
-    ADD FOREIGN KEY (logins_id)
+    ADD FOREIGN KEY (login_id)
     REFERENCES public.logins (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION

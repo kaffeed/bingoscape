@@ -8,7 +8,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/mattn/go-sqlite3 v1.14.22
 	golang.org/x/crypto v0.23.0
 )
 
