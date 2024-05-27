@@ -46,18 +46,18 @@ type AuthHandler struct {
 
 func (ah *AuthHandler) homeHandler(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
-	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
 	if !ok {
-		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+		return fmt.Errorf("invalid type for key 'ISAUTHENTICATED'")
 	}
 	isManagement, _ := c.Get(mgmnt_key).(bool)
+	userName, _ := c.Get(username_key).(string)
+
 	homeView := authviews.Home(isAuthenticated)
 	c.Set("ISERROR", false)
-	// fmt.Printf("\033[31mFROMPROTECTED = %t\n\033[0m", fromProtected)
 
 	return render(c, authviews.HomeIndex(
 		"| Home",
-		"",
+		userName,
 		isAuthenticated,
 		isManagement,
 		c.Get("ISERROR").(bool),
@@ -121,57 +121,6 @@ func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
-
-// func (ah *AuthHandler) registerHandler(c echo.Context) error {
-// 	fromProtected, ok := c.Get("").(bool)
-// 	if !ok {
-// 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
-// 	}
-// 	registerView := authviews.Register(fromProtected)
-// 	// isError = false
-// 	c.Set("ISERROR", false)
-//
-// 	if c.Request().Method == "POST" {
-// 		user := services.User{
-// 			Password: c.FormValue("password"),
-// 			Username: c.FormValue("username"),
-// 		}
-//
-// 		err := ah.UserServices.CreateUser(user)
-// 		if err != nil {
-// 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-// 				err = errors.New("the email is already in use")
-// 				setFlashmessages(c, "error", fmt.Sprintf(
-// 					"something went wrong: %s",
-// 					err,
-// 				))
-//
-// 				return c.Redirect(http.StatusSeeOther, "/register")
-// 			}
-//
-// 			return echo.NewHTTPError(
-// 				echo.ErrInternalServerError.Code,
-// 				fmt.Sprintf(
-// 					"something went wrong: %s",
-// 					err,
-// 				))
-// 		}
-//
-// 		setFlashmessages(c, "success", "You have successfully registered!!")
-//
-// 		return c.Redirect(http.StatusSeeOther, "/login")
-// 	}
-//
-// 	return renderView(c, authviews.RegisterIndex(
-// 		"| Register",
-// 		"",
-// 		fromProtected,
-// 		c.Get("ISERROR").(bool),
-// 		getFlashmessages(c, "error"),
-// 		getFlashmessages(c, "success"),
-// 		registerView,
-// 	))
-// }
 
 func (ah *AuthHandler) loginHandler(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)

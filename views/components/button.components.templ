@@ -1,0 +1,39 @@
+package components
+
+const (
+	POST method = iota
+	GET
+)
+
+templ Button(m method, url string, msg string) {
+	if msg != "" {
+		<button
+			hx-swap="transition:true"
+			if m==GET {
+				hx-get={ url }
+			} else {
+				hx-post={ url }
+			}
+			hx-target="body"
+			hx-push-url="true"
+			hx-confirm={ msg }
+			class="btn btn-ghost text-xl"
+		>
+			{ children... }
+		</button>
+	} else {
+		<button
+			hx-swap="transition:true"
+			if m==GET {
+				hx-get={ url }
+			} else {
+				hx-post={ url }
+			}
+			hx-target="body"
+			hx-push-url="true"
+			class="btn btn-ghost text-xl"
+		>
+			{ children... }
+		</button>
+	}
+}

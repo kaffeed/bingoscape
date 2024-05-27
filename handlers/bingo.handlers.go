@@ -3,8 +3,11 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -127,6 +130,92 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
+func (bh *BingoHandler) handleEditTile(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
+	}
+
+	tileId, err := strconv.Atoi(c.Param("tileId"))
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	tile, err := bh.BingoService.LoadTile(tileId)
+	fmt.Printf("Tile: %#v", tile)
+
+	c.Set("ISERROR", false)
+
+	if c.Request().Method == "PUT" {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return err
+		}
+		src, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer src.Close()
+
+		// Destination
+
+		dst, err := os.CreateTemp("assets/img/tiles", fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+		log.Printf("Copying file to %s", dst.Name())
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+
+		// Copy
+		if _, err = io.Copy(dst, src); err != nil {
+			return err
+		}
+
+		t := services.Tile{ // TODO: Read from config
+			Id:          tileId,
+			Title:       c.FormValue("title"),
+			Description: c.FormValue("description"),
+			ImagePath:   strings.TrimLeft(dst.Name(), "assets/"),
+			BingoId:     tile.BingoId,
+		}
+
+		log.Printf("Tile %#v", t)
+
+		err = bh.BingoService.UpdateTile(t)
+
+		if err != nil {
+			return echo.NewHTTPError(
+				echo.ErrInternalServerError.Code,
+				fmt.Sprintf(
+					"something went wrong: %s",
+					err,
+				))
+		}
+
+		setFlashmessages(c, "success", "Created a new bingo!")
+
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", t.BingoId))
+	}
+
+	editTileView := authviews.EditTile(isManagement, tile)
+
+	return render(c, authviews.EditTileIndex(
+		"| Register",
+		"",
+		isAuthenticated,
+		isManagement,
+		c.Get("ISERROR").(bool),
+		getFlashmessages(c, "error"),
+		getFlashmessages(c, "success"),
+		editTileView,
+	))
+}
+
 func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
@@ -195,6 +284,10 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 	bingoTable := components.BingoTable(isManagement, bingos)
 
 	return render(c, bingoTable)
+}
+
+func (bh *BingoHandler) handleCreateTile(c echo.Context) error {
+	return nil
 }
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {

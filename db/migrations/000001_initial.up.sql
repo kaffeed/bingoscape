@@ -29,9 +29,18 @@ CREATE TABLE IF NOT EXISTS public.bingos_logins
 CREATE TABLE IF NOT EXISTS public.tiles
 (
     id serial NOT NULL,
-    image character varying NOT NULL,
+    title character varying(250) NOT NULL,
+    imagepath character varying NOT NULL,
     description character varying(5000) NOT NULL,
     bingo_id serial NOT NULL,
+    PRIMARY KEY (id)
+);
+    
+CREATE TABLE IF NOT EXISTS public.template_tiles
+(
+    id serial NOT NULL,
+    image character varying NOT NULL,
+    description character varying(5000) NOT NULL,
     PRIMARY KEY (id)
 );
 

@@ -18,6 +18,7 @@ func main() {
 	e := echo.New()
 
 	e.Static("/", "assets")
+	e.Static("/img", "assets/img")
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

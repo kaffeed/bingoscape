@@ -14,6 +14,10 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	teamGroup.GET("/register", bingoHandlers.RegisterHandler)
 	teamGroup.POST("/register", bingoHandlers.RegisterHandler)
 
+	tileGroup := e.Group("/tiles", authHandlers.authMiddleware)
+	tileGroup.GET("/:tileId/edit", bingoHandlers.handleEditTile)
+	tileGroup.PUT("/:tileId/edit", bingoHandlers.handleEditTile)
+
 	// /* ↓ Protected Routes ↓ */
 	protectedGroup := e.Group("/bingos", authHandlers.authMiddleware)
 	protectedGroup.GET("/list", bingoHandlers.handleGetAllBingos)
