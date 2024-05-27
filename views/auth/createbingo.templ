@@ -1,0 +1,80 @@
+package auth
+
+import "github.com/kaffeed/bingoscape/views/layout"
+
+templ CreateBingo(isManagement bool) {
+	<section class="card w-fit bg-base-200 shadow-xl mx-auto mb-8">
+		<div class="card-body pb-2">
+			<h1 class="card-title border-b border-b-slate-600 pb-[4px]">
+				Create a new Bingo
+			</h1>
+			<form
+				hx-swap="transition:true"
+				class="rounded-xl drop-shadow-xl flex flex-col gap-4 w-96 p-8"
+				action=""
+				method="post"
+			>
+				<label class="flex flex-col justify-start gap-2">
+					Title:
+					<input
+						class="input input-bordered input-primary bg-slate-800"
+						type="text"
+						name="title"
+						required
+						minlength="4"
+						maxlength="64"
+						disabled?={ !isManagement }
+						if !isManagement {
+							value="disabled"
+						}
+					/>
+				</label>
+				<label class="flex flex-col justify-start gap-2 relative">
+					Active from:
+					<input
+						class="input input-bordered input-primary bg-slate-800"
+						type="date"
+						name="validfrom"
+						required
+						disabled?={ !isManagement }
+						if !isManagement {
+							value="disabled"
+						}
+					/>
+				</label>
+				<label class="flex flex-col justify-start gap-2 relative">
+					Active to:
+					<input
+						class="input input-bordered input-primary bg-slate-800"
+						type="date"
+						name="validfrom"
+						required
+						disabled?={ !isManagement }
+						if !isManagement {
+							value="disabled"
+						}
+					/>
+				</label>
+				<label class="flex flex-col justify-start gap-2">
+					# Rows:
+					<input type="number" name="rows" class="input input-bordered input-primary bg-slate-800" placeholder="5" min="2" max="12" required/>
+				</label>
+				<label class="flex flex-col justify-start gap-2">
+					# Columns:
+					<input type="number" name="cols" class="input input-bordered input-primary bg-slate-800" placeholder="5" min="2" max="12" required/>
+				</label>
+				<footer class="card-actions justify-end">
+					<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]" disabled?={ !isManagement }>
+						Create
+					</button>
+				</footer>
+			</form>
+		</div>
+	</section>
+}
+
+templ CreateBingoIndex(title string, username string, isAuthenticated bool, isManagement bool, isError bool, errMsgs []string, sucMsgs []string, cmp templ.Component) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
+		@cmp
+	}
+}

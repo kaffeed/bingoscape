@@ -1,0 +1,40 @@
+package auth
+
+import "github.com/kaffeed/bingoscape/views/layout"
+import "github.com/kaffeed/bingoscape/services"
+import "fmt"
+
+templ BingoDetail(isManagement bool, bingo services.Bingo) {
+	<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
+		<div class="card card-side bg-base-100 shadow-xl">
+			<figure><img src="https://img.daisyui.com/images/stock/photo-1635805737707-575885ab0820.jpg" alt="Movie"/></figure>
+			<div class="card-body">
+				<h2 class="card-title">{ bingo.Title }</h2>
+				<p>Click the button to watch on Jetflix app.</p>
+				<div class="card-actions justify-end">
+					<button class="btn btn-primary">Watch</button>
+				</div>
+			</div>
+		</div>
+		<div class={ "grid", "grid-flow-col", fmt.Sprintf("grid-rows-%d",bingo.Rows), fmt.Sprintf("grid-cols-%d", bingo.Cols), "gap-1" }>
+			for _, t := range bingo.Tiles {
+				<div>
+					<img src={ t.ImagePath } class="grid-item" alt="Shoes"/>
+				</div>
+			}
+		</div>
+	</section>
+}
+
+templ BingoDetailIndex(
+	title,
+	username string,
+	isAuthenticated bool,
+	isManagement bool,
+	isError bool,
+	errMsgs, sucMsgs []string,
+	cmp templ.Component) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
+		@cmp
+	}
+}

@@ -30,12 +30,11 @@ func main() {
 	}
 
 	us := services.NewUserServices(store)
-	// userservice.CreateUser(services.User{})
-	authhandler := handlers.NewAuthHandler(us)
 	bs := services.NewBingoService(store)
-	bingohandler := handlers.NewBingoHandler(bs, us)
+	ah := handlers.NewAuthHandler(us)
+	bh := handlers.NewBingoHandler(bs, us)
 
-	handlers.SetupRoutes(e, authhandler, bingohandler)
+	handlers.SetupRoutes(e, ah, bh)
 
 	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

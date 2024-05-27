@@ -4,7 +4,7 @@ templ Navbar(username string, isAuthenticated, isManagement bool) {
 	<nav class="navbar bg-base-100">
 		<div class="flex-1">
 			<a hx-swap="transition:true" class="btn btn-ghost text-xl" href="/">
-				Bingoscape
+				BingoScape
 			</a>
 		</div>
 		<div class="flex-none">
@@ -13,13 +13,10 @@ templ Navbar(username string, isAuthenticated, isManagement bool) {
 					{ username }
 				</span>
 				if isManagement {
-					<a hx-swap="transition:true" class="btn btn-ghost text-lg rs" href="/bingos/register">
+					<a hx-swap="transition:true" class="btn btn-ghost text-lg rs" href="/teams/register">
 						Create Team
 					</a>
 				}
-				<a hx-swap="transition:true" class="btn btn-ghost text-lg rs" href="/todo/list">
-					Bingos
-				</a>
 				<button
 					hx-swap="transition:true"
 					hx-post="/logout"

@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS public.bingos
     title character varying(255) NOT NULL,
     validFrom date NOT NULL,
     validTo date NOT NULL,
-    size integer,
+    rows integer,
+    cols integer,
     PRIMARY KEY (id)
 );
 
@@ -56,7 +57,7 @@ ALTER TABLE IF EXISTS public.bingos_logins
     ADD FOREIGN KEY (bingo_id)
     REFERENCES public.bingos (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE cascade
     NOT VALID;
 
 
@@ -72,7 +73,7 @@ ALTER TABLE IF EXISTS public.tiles
     ADD FOREIGN KEY (bingo_id)
     REFERENCES public.bingos (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     NOT VALID;
 
 

@@ -28,7 +28,7 @@ func (us *UserService) CreateUser(u User) error {
 		return err
 	}
 
-	stmt := `INSERT INTO users(password, username, ismanagement) VALUES($1, $2, $3)`
+	stmt := `INSERT INTO logins(password, name, is_management) VALUES($1, $2, $3)`
 
 	_, err = us.UserStore.Db.Exec(
 		stmt,

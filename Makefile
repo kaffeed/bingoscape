@@ -27,10 +27,10 @@ init:
 test:
 	go test -race -cover $(PACKAGES)
 
-## build: build a binary
-.PHONY: build
-build: test
-	go build  -o ./tmp/main -v ./cmd 
+## build-api: build a binary
+.PHONY: build-api
+build-api: test
+	go build  -o ./tmp/main -v ./cmd/api
 
 ## docker-build: build project into a docker container image
 .PHONY: docker-build
@@ -42,9 +42,9 @@ docker-build: test
 docker-run:
 	docker run -it --rm -p 8080:8080 ${name}
 
-## start: build and run local project
-.PHONY: start
-start: build
+## start-api: build and run local project
+.PHONY: start-api
+start-api: build-api
 	air
 
 ## css: build tailwindcss
