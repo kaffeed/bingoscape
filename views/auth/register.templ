@@ -6,7 +6,7 @@ templ Register(isManagement bool) {
 	<section class="card w-fit bg-base-200 shadow-xl mx-auto mb-8">
 		<div class="card-body pb-2">
 			<h1 class="card-title border-b border-b-slate-600 pb-[4px]">
-				Register new Team
+				Register new Login
 			</h1>
 			<form
 				hx-swap="transition:true"
@@ -15,7 +15,7 @@ templ Register(isManagement bool) {
 				method="post"
 			>
 				<label class="flex flex-col justify-start gap-2">
-					Team name:
+					Login name:
 					<input
 						class="input input-bordered input-primary bg-slate-800"
 						type="text"
@@ -94,7 +94,7 @@ templ Register(isManagement bool) {
 				</label>
 				<footer class="card-actions justify-end">
 					<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]" disabled?={ !isManagement }>
-						Register Team
+						Create Login
 					</button>
 				</footer>
 			</form>

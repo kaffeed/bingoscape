@@ -29,6 +29,21 @@ templ CreateBingo(isManagement bool) {
 						}
 					/>
 				</label>
+				<label class="flex flex-col justify-start gap-2">
+					Description:
+					<input
+						class="textarea textarea-bordered"
+						type="textarea"
+						name="description"
+						required
+						minlength="4"
+						maxlength="5000"
+						disabled?={ !isManagement }
+						if !isManagement {
+							value="disabled"
+						}
+					/>
+				</label>
 				<label class="flex flex-col justify-start gap-2 relative">
 					Active from:
 					<input
@@ -89,8 +104,7 @@ templ CreateBingo(isManagement bool) {
 	</section>
 }
 
-templ CreateBingoIndex(title string, username string, isAuthenticated bool, isManagement bool, isError bool, errMsgs
-[]string, sucMsgs []string, cmp templ.Component) {
+templ CreateBingoIndex(title string, username string, isAuthenticated bool, isManagement bool, isError bool, errMsgs []string, sucMsgs []string, cmp templ.Component) {
 	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
 		@cmp
 	}

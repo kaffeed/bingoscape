@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
@@ -13,12 +15,32 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+func setupImageDirectories(path string) {
+	subPaths := []string{"tiles", "bingo", "submissions"}
+
+	for _, p := range subPaths {
+		fp := filepath.Join(path, p)
+		if _, err := os.Stat(fp); !os.IsNotExist(err) { // image path exists
+			log.Printf("Path %s exists, skipping creation\n", fp)
+			continue
+		}
+		err := os.MkdirAll(filepath.Join(path, p), os.ModePerm)
+		if err != nil {
+			panic("Could not create directories!")
+		}
+	}
+}
+
 func main() {
 	godotenv.Load()
 	e := echo.New()
 
 	e.Static("/", "assets")
-	e.Static("/img", "assets/img")
+	p := filepath.Join(os.Getenv("IMAGE_PATH"))
+	setupImageDirectories(p)
+
+	imageGroup := e.Group("/img")
+	imageGroup.Use(middleware.Static(p))
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

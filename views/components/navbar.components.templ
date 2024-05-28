@@ -5,31 +5,35 @@ type method int
 templ Navbar(username string, isAuthenticated, isManagement bool) {
 	<div class="navbar bg-base-100">
 		<div class="navbar-start">
-			<div class="dropdown">
-				<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
-					</svg>
+			if isAuthenticated {
+				<div class="dropdown">
+					<div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+						</svg>
+					</div>
+					<ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+						@menuContent(isManagement)
+					</ul>
 				</div>
-				<ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-					@menuContent()
-				</ul>
-			</div>
+			}
 			@Button(GET, "/", "") {
 				BingoScape
 			}
 		</div>
-		<div class="navbar-center hidden lg:flex">
-			<ul class="menu menu-horizontal px-1">
-				@menuContent()
-			</ul>
-		</div>
+		if isAuthenticated {
+			<div class="navbar-center hidden lg:flex">
+				<ul class="menu menu-horizontal px-1">
+					@menuContent(isManagement)
+				</ul>
+			</div>
+		}
 		<div class="navbar-end">
 			if isAuthenticated {
 				<span class="font-bold text-indigo-700 mr-8">
@@ -45,55 +49,24 @@ templ Navbar(username string, isAuthenticated, isManagement bool) {
 			}
 		</div>
 	</div>
-	<nav class="navbar bg-base-100">
-		<div class="flex-1">
-			<a hx-swap="transition:true" class="btn btn-ghost text-xl" href="/">
-				BingoScape
-			</a>
-		</div>
-		<div class="flex-none">
-			if isAuthenticated {
-				<span class="font-bold text-indigo-700 mr-8 rs">
-					{ username }
-				</span>
-				if isManagement {
-					@Button(GET, "/teams/register", "") {
-						Create Team
-					}
-				}
-				<button
-					hx-swap="transition:true"
-					hx-post="/logout"
-					hx-confirm="Are you sure you want to log out?"
-					hx-target="body"
-					hx-push-url="true"
-					class="btn btn-ghost text-lg rs"
-				>
-					Logout
-				</button>
-			} else {
-				@Button(GET, "/login", "") {
-					Login
-				}
-			}
-		</div>
-	</nav>
 }
 
-templ menuContent() {
-	<li>
-		@Button(GET, "/teams/register", "") {
-			Create Team
-		}
-	</li>
+templ menuContent(isManagement bool) {
+	if isManagement {
+		<li>
+			<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins/create" class="text-xl">
+				Create Login
+			</a>
+		</li>
+	}
 	<li>
 		<details>
-			<summary>Bingo</summary>
+			<summary class="text-xl">Bingo</summary>
 			<ul class="p-2">
-				<li><a></a></li>
-				<li><a>Submenu 2</a></li>
+				<li><a class="text-xl">Submenu 1</a></li>
+				<li><a class="text-xl">Template Tiles</a></li>
 			</ul>
 		</details>
 	</li>
-	<li><a>Item 3</a></li>
+	<li><a class="text-xl">Item 3</a></li>
 }

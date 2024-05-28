@@ -3,79 +3,100 @@ package auth
 import "github.com/kaffeed/bingoscape/services"
 import "github.com/kaffeed/bingoscape/views/layout"
 
-templ EditTile(isManagement bool, tile services.Tile) {
-	<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
-		<div class="card card-side bg-base-100 shadow-xl">
-			<figure><img src={ tile.ImagePath } alt="Title"/></figure>
-			<h1 class="card-title border-b border-b-slate-600 pb-[4px]">
-				Edit tile
-			</h1>
-			<form
-				hx-swap="transition:true"
-				class="rounded-xl drop-shadow-xl flex flex-col gap-4 w-96 p-8"
-				enctype="multipart/form-data"
-				action=""
-				method="put"
-			>
-				<label class="flex flex-col justify-start gap-2">
-					Title:
-					<input
-						class="input input-bordered input-primary bg-slate-800"
-						type="text"
-						name="title"
-						required
-						minlength="4"
-						maxlength="250"
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						} else {
-							value={ tile.Title }
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2">
-					Description:
-					<input
-						class="input input-bordered input-primary bg-slate-800"
-						type="textarea"
-						name="description"
-						required
-						minlength="4"
-						maxlength="5000"
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						} else {
-							value={ tile.Description }
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2">
-					Image:
-					<input
-						class="file-input file-input-bordered w-full max-w-xs"
-						class=""
-						type="file"
-						name="file"
-						required
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						}
-					/>
-				</label>
-				<footer class="card-actions justify-end">
-					<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]" disabled?={ !isManagement }>
-						Update
-					</button>
-				</footer>
-			</form>
+templ Tile(isManagement bool, tile services.Tile) {
+	<section class="mx-auto w-2/5 flex flex-col gap-8 text-center">
+		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
+			<figure><img src={ tile.ImagePath } class="tile-card-image justify-center" alt="Album"/></figure>
+			<div class="card-body">
+				if !isManagement {
+					<h2 class="card-title">{ tile.Title }</h2>
+					<p>{ tile.Description }</p>
+					<div class="card-actions justify-end">
+						<button class="btn btn-primary">Listen</button>
+					</div>
+				} else {
+					@editTile(isManagement, tile)
+				}
+			</div>
 		</div>
 	</section>
 }
 
-templ EditTileIndex(title string, username string, isAuthenticated bool, isManagement bool, isError bool, errMsgs,
+templ editTile(isManagement bool, tile services.Tile) {
+	<div class="card-actions justify-end">
+		<form
+			hx-swap="transition:true"
+			class="rounded-xl drop-shadow-xl flex flex-col gap-4 w-96 p-8"
+			enctype="multipart/form-data"
+			action=""
+			method="put"
+		>
+			<label class="flex flex-col justify-start gap-2">
+				Title:
+				<input
+					class="input input-bordered w-full max-w-xs"
+					type="text"
+					name="title"
+					required
+					minlength="4"
+					maxlength="250"
+					disabled?={ !isManagement }
+					if !isManagement {
+						value="disabled"
+					} else {
+						value={ tile.Title }
+					}
+				/>
+			</label>
+			<label class="flex flex-col justify-start gap-2">
+				Description:
+				<input
+					class="textarea textarea-bordered"
+					type="textarea"
+					name="description"
+					required
+					minlength="4"
+					maxlength="5000"
+					disabled?={ !isManagement }
+					if !isManagement {
+						value="disabled"
+					} else {
+						value={ tile.Description }
+					}
+				/>
+			</label>
+			<label class="flex flex-col justify-start gap-2">
+				Image:
+				<input
+					class="file-input file-input-bordered w-full max-w-xs"
+					type="file"
+					name="file"
+					required
+					disabled?={ !isManagement }
+					if !isManagement {
+						value="disabled"
+					}
+				/>
+			</label>
+			<label class="flex flex-col justify-start gap-2">
+				Save as Template:
+				<input
+					class="checkbox checkbox-primary"
+					type="checkbox"
+					name="saveAsTemplate"
+					disabled?={ !isManagement }
+				/>
+			</label>
+			<footer class="card-actions justify-end">
+				<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]" disabled?={ !isManagement }>
+					Update
+				</button>
+			</footer>
+		</form>
+	</div>
+}
+
+templ TileIndex(title string, username string, isAuthenticated bool, isManagement bool, isError bool, errMsgs,
 	sucMsgs []string, cmp templ.Component) {
 	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
 		@cmp

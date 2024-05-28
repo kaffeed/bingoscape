@@ -21,7 +21,7 @@ templ Home(isAuthenticated bool) {
 				</a>
 			</footer>
 		} else {
-			<div hx-get="/bingos/list" hx-trigger="load" hx-swap="outerHTML"></div>
+			<div hx-get="/bingos/list" hx-trigger="load, every 2s" hx-swap="outerHTML"></div>
 		}
 	</section>
 }

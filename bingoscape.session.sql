@@ -23,7 +23,26 @@ SELECT b.id, b.title, b.validFrom, b.validTo, b.rows, b.cols FROM bingos b
 		JOIN logins l ON bl.login_id = l.id
 WHERE l.id = 1 
 
+SELECT l.Id, l.name FROM public.logins l
+	JOIN bingos_logins bl ON l.id = bl.login_id
+	WHERE bl.bingo_id = 1 
+
+SELECT l.id, l.name FROM public.logins l
+	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = 1
+
 INSERT INTO bingos_logins (bingo_id, login_id)
-VALUES (3,2);
+VALUES (1,1);
 
 --drop table schema_migrations;id:integer, login_id:integer
+
+
+drop table public.submission_images;
+drop table public.submissions;
+drop table public.tiles;
+--drop table public.template_tiles;
+drop table public.bingos_logins;
+drop table public.logins;
+drop table public.bingos;
+begin;
+drop table public.schema_migrations;
+commit;

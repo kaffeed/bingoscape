@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +39,35 @@ func (bh *BingoHandler) handleGetActiveBingo(c echo.Context) error {
 	return nil
 }
 
+func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok || !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+
+	if err != nil {
+		return fmt.Errorf("No valid parameter bingoId: %w", err)
+	}
+	bingo, err := bh.BingoService.GetBingo(bingoId)
+
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return fmt.Errorf("Could not get participants! %w", err)
+	}
+
+	pp, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	if err != nil {
+		return fmt.Errorf("Could not get possible participants! %w", err)
+	}
+	participantTable := components.BingoTeams(isManagement, bingo, p, pp)
+
+	return render(c, participantTable)
+}
+
 func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
@@ -55,12 +85,13 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 	if c.Request().Method == "POST" {
 		rows, _ := strconv.Atoi(c.FormValue("rows"))
 		cols, _ := strconv.Atoi(c.FormValue("cols"))
-		bingo := services.Bingo{ // TODO: Read from config
-			Title: c.FormValue("title"),
-			From:  time.Now(),
-			To:    time.Now().AddDate(0, 30, 0),
-			Rows:  rows,
-			Cols:  cols,
+		bingo := services.Bingo{
+			Title:       c.FormValue("title"),
+			From:        time.Now(),
+			To:          time.Now().AddDate(0, 30, 0),
+			Rows:        rows,
+			Cols:        cols,
+			Description: c.FormValue("Description"),
 		}
 
 		bingo, err := bh.BingoService.CreateBingo(bingo)
@@ -138,7 +169,7 @@ func (bh *BingoHandler) handleEditTile(c echo.Context) error {
 
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !ok {
-		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
+		isManagement = false
 	}
 
 	tileId, err := strconv.Atoi(c.Param("tileId"))
@@ -164,7 +195,9 @@ func (bh *BingoHandler) handleEditTile(c echo.Context) error {
 
 		// Destination
 
-		dst, err := os.CreateTemp("assets/img/tiles", fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+		p := filepath.Join(os.Getenv("IMAGE_PATH"), "tiles")
+		dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+
 		log.Printf("Copying file to %s", dst.Name())
 		if err != nil {
 			return err
@@ -180,13 +213,15 @@ func (bh *BingoHandler) handleEditTile(c echo.Context) error {
 			Id:          tileId,
 			Title:       c.FormValue("title"),
 			Description: c.FormValue("description"),
-			ImagePath:   strings.TrimLeft(dst.Name(), "assets/"),
+			ImagePath:   staticPath(dst.Name(), p),
 			BingoId:     tile.BingoId,
 		}
 
-		log.Printf("Tile %#v", t)
-
 		err = bh.BingoService.UpdateTile(t)
+
+		if c.FormValue("saveAsTemplate") == "on" {
+			bh.BingoService.CreateTemplateTile(t)
+		}
 
 		if err != nil {
 			return echo.NewHTTPError(
@@ -202,10 +237,10 @@ func (bh *BingoHandler) handleEditTile(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", t.BingoId))
 	}
 
-	editTileView := authviews.EditTile(isManagement, tile)
+	editTileView := authviews.Tile(isManagement, tile)
 
-	return render(c, authviews.EditTileIndex(
-		"| Register",
+	return render(c, authviews.TileIndex(
+		"| Tile",
 		"",
 		isAuthenticated,
 		isManagement,
@@ -214,6 +249,10 @@ func (bh *BingoHandler) handleEditTile(c echo.Context) error {
 		getFlashmessages(c, "success"),
 		editTileView,
 	))
+}
+
+func staticPath(imgPath, basePath string) string {
+	return strings.Replace(imgPath, basePath, "/img/tiles", -1)
 }
 
 func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
@@ -259,7 +298,7 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 
 		setFlashmessages(c, "success", "You have successfully registered!!")
 
-		return c.Redirect(http.StatusSeeOther, "/login")
+		return c.Redirect(http.StatusSeeOther, "/")
 	}
 
 	return render(c, authviews.RegisterIndex(
@@ -286,8 +325,93 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 	return render(c, bingoTable)
 }
 
-func (bh *BingoHandler) handleCreateTile(c echo.Context) error {
-	return nil
+type ParticipantId struct {
+	id int `form:"possibleparticipants,omitempty"`
+}
+
+func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
+	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !isManagement {
+		return err
+	}
+	bingo, err := bh.BingoService.GetBingo(bingoId)
+	if err != nil {
+		return err
+	}
+
+	if c.Request().Method == "POST" {
+		pId, err := strconv.Atoi(c.FormValue("team"))
+		if err != nil {
+			log.Printf("Error during getting team id")
+			return err
+		}
+
+		bh.BingoService.AddParticipantToBingo(pId, bingoId)
+	}
+
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	possible, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	bingoView := components.BingoTeams(isManagement, bingo, p, possible)
+	return render(c, bingoView)
+}
+
+func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
+	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+	if err != nil {
+		return errors.New("Can't parse bingoId from params")
+	}
+	pId, err := strconv.Atoi(c.Param("pId"))
+	if err != nil {
+		return errors.New("Can't parse participationId from params")
+	}
+
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return errors.New("Need to be authenticated")
+	}
+	log.Printf("Removing Bingo participant %d", pId)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok || !isManagement {
+		log.Fatalf("Needs to be management!!")
+		return errors.New("Needs to be management")
+	}
+
+	err = bh.BingoService.RemoveParticipation(pId, bingoId)
+	if err != nil {
+		return fmt.Errorf("Could not remove participation %d from bingo %d", pId, bingoId)
+	}
+
+	bingo, err := bh.BingoService.GetBingo(bingoId)
+
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return fmt.Errorf("Could not get participants! %w", err)
+	}
+
+	pp, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	if err != nil {
+		return fmt.Errorf("Could not get possible participants! %w", err)
+	}
+
+	return render(c, components.BingoTeams(isManagement, bingo, p, pp))
 }
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
@@ -297,14 +421,26 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
 	}
-	isManagement, _ := c.Get(mgmnt_key).(bool)
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		isManagement = false
+	}
 	bingo, err := bh.BingoService.GetBingo(bingoId)
 	if err != nil {
 		return err
 	}
-	bingoView := authviews.BingoDetail(isAuthenticated, bingo)
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	possible, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	bingoView := authviews.BingoDetail(isManagement, bingo, p, possible)
 	c.Set("ISERROR", false)
-	// fmt.Printf("\033[31mFROMPROTECTED = %t\n\033[0m", fromProtected)
 
 	return render(c, authviews.BingoDetailIndex(
 		"| Bingo",
@@ -316,4 +452,9 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		getFlashmessages(c, "success"),
 		bingoView,
 	))
+}
+
+func (bh *BingoHandler) handleUpdateActiveState(c echo.Context) error {
+
+	return nil
 }

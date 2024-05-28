@@ -10,9 +10,9 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	// e.GET("/register", ah.flagsMiddleware(ah.registerHandler))
 	// e.POST("/register", ah.flagsMiddleware(ah.registerHandler))
 
-	teamGroup := e.Group("/teams", authHandlers.authMiddleware)
-	teamGroup.GET("/register", bingoHandlers.RegisterHandler)
-	teamGroup.POST("/register", bingoHandlers.RegisterHandler)
+	teamGroup := e.Group("/logins", authHandlers.authMiddleware)
+	teamGroup.GET("/create", bingoHandlers.RegisterHandler)
+	teamGroup.POST("/create", bingoHandlers.RegisterHandler)
 
 	tileGroup := e.Group("/tiles", authHandlers.authMiddleware)
 	tileGroup.GET("/:tileId/edit", bingoHandlers.handleEditTile)
@@ -25,6 +25,12 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	protectedGroup.GET("/create", bingoHandlers.handleCreateBingo)
 	protectedGroup.POST("/create", bingoHandlers.handleCreateBingo)
 	protectedGroup.DELETE("/delete/:bingoId", bingoHandlers.handleDeleteBingo)
+	protectedGroup.GET("/:bingoId/active/:isActive", bingoHandlers.handleUpdateActiveState)
+	protectedGroup.PUT("/:bingoId/active/:isActive", bingoHandlers.handleUpdateActiveState)
+	protectedGroup.POST("/:bingoId/participants", bingoHandlers.handleBingoParticipation)
+	protectedGroup.GET("/:bingoId/participants", bingoHandlers.handleBingoParticipation)
+	protectedGroup.DELETE("/:bingoId/participants/:pId", bingoHandlers.removeBingoParticipation)
+
 	// protectedGroup.GET("/create", th.createTodoHandler)
 	// protectedGroup.POST("/create", th.createTodoHandler)
 	// protectedGroup.GET("/edit/:id", th.updateTodoHandler)

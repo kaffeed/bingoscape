@@ -40,7 +40,7 @@ templ BingoTable(isManagement bool, bingos []services.Bingo) {
 				</thead>
 				<tbody>
 					for _,bingo := range bingos {
-						@BingoDetail(bingo, isManagement)
+						@bingoTableRow(bingo, isManagement)
 					}
 				</tbody>
 				<!-- foot -->
@@ -78,7 +78,7 @@ templ BingoTable(isManagement bool, bingos []services.Bingo) {
 	}
 }
 
-templ BingoDetail(bingo services.Bingo, isManagement bool) {
+templ bingoTableRow(bingo services.Bingo, isManagement bool) {
 	<tr>
 		<td></td>
 		<td>

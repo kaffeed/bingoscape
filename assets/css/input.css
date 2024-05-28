@@ -7,8 +7,16 @@
   html {
     font-family: "runescape", system-ui, sans-serif;
   }
+
     .rs {
         color: #f8fe08
+    }
+
+
+    .tile-card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; /* or "contain" */
     }
 
     .grid-item {
