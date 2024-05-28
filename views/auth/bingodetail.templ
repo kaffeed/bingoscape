@@ -26,7 +26,7 @@ templ BingoDetail(isManagement bool, bingo services.Bingo, participants services
 			>
 				for _, t := range bingo.Tiles {
 					<div
-						hx-get={ fmt.Sprintf("/tiles/%d/edit", t.Id) }
+						hx-get={ fmt.Sprintf("/tiles/%d", t.Id) }
 						class="cursor-pointer"
 						hx-swap="transition:true"
 						hx-target="body"

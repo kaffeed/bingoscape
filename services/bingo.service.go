@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -51,8 +52,6 @@ func (tiles Tiles) BulkInsert(db *sql.DB) error {
 		vals         []interface{}
 	)
 
-	fmt.Printf("VALUES: %#v", tiles)
-
 	for index, tile := range tiles {
 		placeholders = append(placeholders, fmt.Sprintf("($%d,$%d,$%d,$%d)",
 			index*4+1,
@@ -84,6 +83,61 @@ func NewBingoService(store db.Store) *BingoService {
 	return &BingoService{
 		store: store,
 	}
+}
+
+func (bs *BingoService) CreateSubmission(tileId int, loginId int, filePaths []string) error {
+	fail := func(err error) error {
+		return fmt.Errorf("CreateSubmission: %w", err)
+	}
+	tx, err := bs.store.Db.BeginTx(context.Background(), nil)
+	if err != nil {
+		return fail(err)
+	}
+	defer tx.Rollback()
+
+	query := `INSERT INTO public.submissions (login_id, tile_id, date) values ($1,$2,$3) returning id`
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return fail(err)
+	}
+
+	var submissionId int
+
+	if err := stmt.QueryRow(
+		tileId, loginId, time.Now(),
+	).Scan(&submissionId); err != nil {
+		return fail(err)
+	}
+
+	var (
+		placeholders []string
+		vals         []interface{}
+	)
+
+	for index, path := range filePaths {
+		placeholders = append(placeholders, fmt.Sprintf("($%d,$%d)",
+			index*2+1,
+			index*2+2,
+		))
+
+		vals = append(vals, path, submissionId)
+	}
+
+	insertStatement := fmt.Sprintf("INSERT INTO submission_images(path, submission_id) VALUES %s", strings.Join(placeholders, ","))
+	stmt, err = tx.Prepare(insertStatement)
+	if err != nil {
+		return fail(err)
+	}
+	_, err = stmt.Exec(vals...)
+	if err != nil {
+		return fail(err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fail(err)
+	}
+
+	return nil
 }
 
 func (bs *BingoService) CreateTemplateTile(t Tile) error {

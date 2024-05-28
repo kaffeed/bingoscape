@@ -2,6 +2,7 @@ package auth
 
 import "github.com/kaffeed/bingoscape/services"
 import "github.com/kaffeed/bingoscape/views/layout"
+import "github.com/kaffeed/bingoscape/views/components"
 
 templ Tile(isManagement bool, tile services.Tile) {
 	<section class="mx-auto w-2/5 flex flex-col gap-8 text-center">
@@ -19,6 +20,8 @@ templ Tile(isManagement bool, tile services.Tile) {
 				}
 			</div>
 		</div>
+		<div class="divider"></div>
+		@components.SubmissionForm(isManagement, tile.Id, tile.BingoId)
 	</section>
 }
 

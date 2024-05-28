@@ -15,8 +15,8 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	teamGroup.POST("/create", bingoHandlers.RegisterHandler)
 
 	tileGroup := e.Group("/tiles", authHandlers.authMiddleware)
-	tileGroup.GET("/:tileId/edit", bingoHandlers.handleEditTile)
-	tileGroup.PUT("/:tileId/edit", bingoHandlers.handleEditTile)
+	tileGroup.GET("/:tileId", bingoHandlers.handleTile)
+	tileGroup.PUT("/:tileId", bingoHandlers.handleTile)
 
 	// /* ↓ Protected Routes ↓ */
 	protectedGroup := e.Group("/bingos", authHandlers.authMiddleware)
@@ -30,6 +30,7 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	protectedGroup.POST("/:bingoId/participants", bingoHandlers.handleBingoParticipation)
 	protectedGroup.GET("/:bingoId/participants", bingoHandlers.handleBingoParticipation)
 	protectedGroup.DELETE("/:bingoId/participants/:pId", bingoHandlers.removeBingoParticipation)
+	protectedGroup.POST("/:bingoId/submit/:tileId", bingoHandlers.handleBingoSubmission)
 
 	// protectedGroup.GET("/create", th.createTodoHandler)
 	// protectedGroup.POST("/create", th.createTodoHandler)

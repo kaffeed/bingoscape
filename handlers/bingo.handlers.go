@@ -161,7 +161,80 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
-func (bh *BingoHandler) handleEditTile(c echo.Context) error {
+func (bh *BingoHandler) handleBingoSubmission(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+	if !isAuthenticated {
+		c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	tileId, err := strconv.Atoi(c.Param("tileId"))
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	tile, err := bh.BingoService.LoadTile(tileId)
+	fmt.Printf("Tile: %#v", tile)
+
+	c.Set("ISERROR", false)
+
+	if c.Request().Method == "POST" {
+		form, err := c.MultipartForm()
+
+		if err != nil {
+			return err
+		}
+		files := form.File["files"]
+		filePaths := []string{}
+		for _, file := range files {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
+
+			// Destination
+
+			p := filepath.Join(os.Getenv("IMAGE_PATH"), "submissions")
+			dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+
+			log.Printf("Copying file to %s", dst.Name())
+			if err != nil {
+				return err
+			}
+			defer dst.Close()
+
+			// Copy
+			if _, err = io.Copy(dst, src); err != nil {
+				return err
+			}
+			filePaths = append(filePaths, staticPath(dst.Name(), p))
+
+		}
+
+		u := c.Get(user_id_key).(int)
+		err = bh.BingoService.CreateSubmission(tileId, u, filePaths)
+
+		if err != nil {
+			return echo.NewHTTPError(
+				echo.ErrInternalServerError.Code,
+				fmt.Sprintf(
+					"something went wrong: %s",
+					err,
+				))
+		}
+
+		setFlashmessages(c, "success", "Created a new bingo!")
+
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+	}
+
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.Id))
+}
+
+func (bh *BingoHandler) handleTile(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")

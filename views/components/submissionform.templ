@@ -1,0 +1,30 @@
+package components
+
+import "fmt"
+
+templ SubmissionForm(isManagement bool, tileId, bingoId int) {
+	<form
+		hx-swap="transition:true"
+		class="rounded-xl drop-shadow-xl flex flex-col gap-4 w-96 p-8"
+		hx-target="body"
+		hx-push-url="true"
+		enctype="multipart/form-data"
+		hx-post={ fmt.Sprintf("/bingos/%d/submit/%d", tileId, bingoId) }
+	>
+		<label class="flex flex-col justify-start gap-2">
+			Submission images:
+			<input
+				class="file-input file-input-bordered w-full max-w-xs"
+				type="file"
+				name="files"
+				required
+				multiple
+			/>
+		</label>
+		<footer class="card-actions justify-end">
+			<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]">
+				Submit
+			</button>
+		</footer>
+	</form>
+}

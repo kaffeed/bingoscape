@@ -1,7 +1,7 @@
 INSERT INTO logins (password, name, is_management)
 VALUES (
     '$2a$08$voKjGNDQhECYiTpaJqx7CuVSeoVXNGSAArEb3PnfK1azcJGgR68EK',
-    'test',
+    'Major',
     true
   );
 
@@ -17,7 +17,6 @@ VALUES (
   INSERT INTO bingos_logins (bingo_id, login_id)
   VALUES (3, 2);
 
-
 SELECT b.id, b.title, b.validFrom, b.validTo, b.rows, b.cols FROM bingos b
 		JOIN bingos_logins bl ON b.id = bl.bingo_id
 		JOIN logins l ON bl.login_id = l.id
@@ -28,7 +27,7 @@ SELECT l.Id, l.name FROM public.logins l
 	WHERE bl.bingo_id = 1 
 
 SELECT l.id, l.name FROM public.logins l
-	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = 1
+	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = 1) and not l.is_management;
 
 INSERT INTO bingos_logins (bingo_id, login_id)
 VALUES (1,1);
