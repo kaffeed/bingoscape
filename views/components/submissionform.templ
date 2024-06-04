@@ -2,14 +2,14 @@ package components
 
 import "fmt"
 
-templ SubmissionForm(isManagement bool, tileId, bingoId int) {
+templ SubmissionForm(isManagement bool, tileId int) {
 	<form
 		hx-swap="transition:true"
 		class="rounded-xl drop-shadow-xl flex flex-col gap-4 w-96 p-8"
 		hx-target="body"
 		hx-push-url="true"
 		enctype="multipart/form-data"
-		hx-post={ fmt.Sprintf("/bingos/%d/submit/%d", tileId, bingoId) }
+		hx-post={ fmt.Sprintf("/tiles/%d/submit", tileId) }
 	>
 		<label class="flex flex-col justify-start gap-2">
 			Submission images:

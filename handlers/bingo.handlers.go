@@ -161,7 +161,53 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
-func (bh *BingoHandler) handleBingoSubmission(c echo.Context) error {
+func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
+
+	log.Printf("###########################################################")
+	log.Printf("Handling updating submission status")
+	log.Printf("###########################################################")
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok || !isManagement {
+		return c.Redirect(http.StatusUnauthorized, c.Path())
+	}
+
+	submissionId, err := strconv.Atoi(c.Param("submissionId"))
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	parsedState, err := strconv.Atoi(c.Param("state"))
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	state := services.State(parsedState)
+
+	s, err := bh.BingoService.UpdateSubmissionState(submissionId, state)
+
+	log.Printf("###########################################################")
+	log.Printf("Submission: %#v", s)
+	log.Printf("###########################################################")
+	if err != nil {
+		c.Set("ISERROR", true)
+		setFlashmessages(c, "error", "Could not update submission state")
+		return err
+	}
+	c.Set("ISERROR", false)
+
+	return render(c, components.SubmissionHeader(isManagement, s))
+}
+
+func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
@@ -210,8 +256,7 @@ func (bh *BingoHandler) handleBingoSubmission(c echo.Context) error {
 			if _, err = io.Copy(dst, src); err != nil {
 				return err
 			}
-			filePaths = append(filePaths, staticPath(dst.Name(), p))
-
+			filePaths = append(filePaths, staticPath(dst.Name()))
 		}
 
 		u := c.Get(user_id_key).(int)
@@ -226,12 +271,52 @@ func (bh *BingoHandler) handleBingoSubmission(c echo.Context) error {
 				))
 		}
 
-		setFlashmessages(c, "success", "Created a new bingo!")
+		setFlashmessages(c, "success", "Submission successful!")
 
-		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.Id))
 	}
 
 	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.Id))
+}
+
+func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	log.Println("HERE BE DRAGONS")
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return errors.New("Need to be authenticated")
+	}
+
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		isManagement = false
+	}
+
+	uid := c.Get(user_id_key).(int)
+
+	log.Printf("HERE BE DRAGONS - USERID %d\n", uid)
+	tileId, err := strconv.Atoi(c.Param("tileId"))
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	var submissionMap map[string][]services.Submission
+	if isManagement {
+		submissionMap, err = bh.BingoService.LoadAllSubmissionsForTile(tileId)
+	} else {
+		submissionMap, err = bh.BingoService.LoadUserSubmissions(tileId, uid)
+	}
+
+	log.Printf("Bingo submissions: %#v", submissionMap)
+
+	if err != nil {
+		return err
+	}
+
+	return render(c, components.Submissions(isManagement, submissionMap))
 }
 
 func (bh *BingoHandler) handleTile(c echo.Context) error {
@@ -286,7 +371,7 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 			Id:          tileId,
 			Title:       c.FormValue("title"),
 			Description: c.FormValue("description"),
-			ImagePath:   staticPath(dst.Name(), p),
+			ImagePath:   staticPath(dst.Name()),
 			BingoId:     tile.BingoId,
 		}
 
@@ -310,7 +395,8 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", t.BingoId))
 	}
 
-	editTileView := authviews.Tile(isManagement, tile)
+	uid := c.Get(user_id_key).(int)
+	editTileView := authviews.Tile(isManagement, tile, uid)
 
 	return render(c, authviews.TileIndex(
 		"| Tile",
@@ -324,8 +410,8 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	))
 }
 
-func staticPath(imgPath, basePath string) string {
-	return strings.Replace(imgPath, basePath, "/img/tiles", -1)
+func staticPath(imgPath string) string {
+	return strings.Replace(imgPath, os.Getenv("IMAGE_PATH"), "/img", -1)
 }
 
 func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
@@ -512,7 +598,9 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		return err
 	}
 
-	bingoView := authviews.BingoDetail(isManagement, bingo, p, possible)
+	uid := c.Get(user_id_key).(int)
+
+	bingoView := authviews.BingoDetail(isManagement, bingo, p, possible, uid)
 	c.Set("ISERROR", false)
 
 	return render(c, authviews.BingoDetailIndex(
@@ -525,9 +613,4 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		getFlashmessages(c, "success"),
 		bingoView,
 	))
-}
-
-func (bh *BingoHandler) handleUpdateActiveState(c echo.Context) error {
-
-	return nil
 }

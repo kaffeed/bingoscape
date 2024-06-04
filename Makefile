@@ -81,3 +81,9 @@ migration-down:
 .PHONY: migration-fix
 migration-fix: 
 	migrate -path db/migrations/ -database "${DB}" force ${version}
+
+
+## migration-new: force db version
+.PHONY: migration-new
+migration-new: 
+	migrate create -dir db/migrations/ -seq -ext sql  ${migration}

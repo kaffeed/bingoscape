@@ -1,0 +1,87 @@
+package components
+
+import "github.com/kaffeed/bingoscape/services"
+import "fmt"
+
+templ Submissions(isManagement bool, s services.Submissions) {
+	for key, val := range s {
+		for _, s := range val {
+			<div class="flex flex-row w-full">
+				<div class="text-lg breadcrumbs">
+					<ul>
+						<li>Submissions</li>
+						<li>{ key }</li>
+						<li>{ s.SubmittedAt.Format("2006-01-02") }</li>
+					</ul>
+				</div>
+			</div>
+			@SubmissionHeader(isManagement, s)
+			<div class="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
+				<div class="-m-1 flex flex-wrap md:-m-2">
+					for _, path := range s.ImagePaths {
+						<div class="flex w-1/3 flex-wrap">
+							<div class="w-full p-1 md:p-2">
+								<a href={ templ.URL(path) }>
+									<img
+										alt="gallery"
+										class="block h-full w-full rounded-lg object-cover object-center"
+										src={ path }
+									/>
+								</a>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		}
+	}
+}
+
+templ SubmissionHeader(isManagement bool, s services.Submission) {
+	<div id={ fmt.Sprintf("submissionHeader-%d", s.Id) } class="flex flex-col content-center gap-2">
+		@SubmissionBadge(s.State, true)
+		if isManagement {
+			@SubmissionState(s)
+		}
+	</div>
+}
+
+templ SubmissionBadge(s services.State, floatRight bool) {
+	switch s {
+		case services.SUBMITTED:
+			<div class={ "badge", "badge-info", "gap-2", templ.KV("float-right", floatRight) }>
+				SUBMITTED
+			</div>
+		case services.NEEDS_REVIEW:
+			<div class={ "badge", "badge-warning", "gap-2", templ.KV("float-right", floatRight) }>
+				ACTION REQUIRED
+			</div>
+		case services.ACCEPTED:
+			<div class={ "badge", "badge-success", "gap-2", templ.KV("float-right", floatRight) }>
+				ACCEPTED
+			</div>
+		default:
+			<span>No submission yet</span>
+	}
+}
+
+templ SubmissionState(s services.Submission) {
+	<div class="join">
+		<button
+			class="btn btn-warning join-item"
+			hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.NEEDS_REVIEW) }
+			hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+			hx-swap="outerHTML"
+		>
+			Needs Action
+		</button>
+		<button
+			class="btn btn-success join-item"
+			hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.ACCEPTED) }
+			hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+			hx-swap="outerHTML"
+		>
+			Accept
+		</button>
+	</div>
+}

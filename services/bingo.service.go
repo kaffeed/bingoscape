@@ -3,12 +3,38 @@ package services
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/kaffeed/bingoscape/db"
+)
+
+type State int
+
+func (e State) String() string {
+	switch e {
+	case SUBMITTED:
+		return "Submitted"
+	case NEEDS_REVIEW:
+		return "Needs review"
+	case ACCEPTED:
+		return "Accepted"
+	default:
+		return fmt.Sprintf("%d", int(e))
+	}
+}
+func (u *State) Scan(value interface{}) error { *u = State(value.(int64)); return nil }
+func (u State) Value() (driver.Value, error)  { return int64(u), nil }
+
+const (
+	SUBMITTED State = iota
+	NEEDS_REVIEW
+	ACCEPTED
 )
 
 type BingoService struct {
@@ -40,11 +66,78 @@ type Tile struct {
 	ImagePath   string
 	Description string
 	BingoId     int
+	Submissions Submissions
 }
 
-type TemplateTile Tile
+type TileStats struct {
+	Submitted  int
+	NeedReview int
+	Accepted   int
+	State      State
+}
+
+func (t *Tile) Stats(loginId int) TileStats {
+	stat := TileStats{
+		Submitted:  0,
+		NeedReview: 0,
+		Accepted:   0,
+		State:      -1,
+	}
+
+	for _, val := range t.Submissions {
+		for _, s := range val {
+			if s.LoginId == loginId {
+				stat.State = s.State
+			}
+			switch s.State {
+			case SUBMITTED:
+				stat.Submitted++
+			case NEEDS_REVIEW:
+				stat.NeedReview++
+			case ACCEPTED:
+				stat.Accepted++
+			}
+		}
+	}
+	return stat
+}
 
 type Tiles []Tile
+
+type Submission struct {
+	Id          int
+	SubmittedAt time.Time
+	TileId      int
+	LoginId     int
+	State       State
+	ImagePaths  []string
+}
+
+func (s *Submission) LoadImages(db *sql.DB) error {
+	query := `SELECT path FROM public.submission_images WHERE submission_id = $1`
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.Query(s.Id)
+	s.ImagePaths = []string{}
+	for rows.Next() {
+		var path string
+		err = rows.Scan(&path)
+		if err != nil {
+			log.Printf("Problem during path scan %v", err)
+			continue
+		}
+		s.ImagePaths = append(s.ImagePaths, path)
+	}
+	return nil
+}
+
+type Submissions map[string][]Submission
 
 func (tiles Tiles) BulkInsert(db *sql.DB) error {
 	var (
@@ -63,7 +156,6 @@ func (tiles Tiles) BulkInsert(db *sql.DB) error {
 		vals = append(vals, tile.Title, tile.ImagePath, tile.Description, tile.BingoId)
 	}
 
-	fmt.Printf("VALUES: %#v", vals)
 	insertStatement := fmt.Sprintf("INSERT INTO tiles(title, imagepath, description, bingo_id) VALUES %s", strings.Join(placeholders, ","))
 	stmt, err := db.Prepare(insertStatement)
 	if err != nil {
@@ -85,6 +177,69 @@ func NewBingoService(store db.Store) *BingoService {
 	}
 }
 
+func (bs *BingoService) LoadUserSubmissions(tileId int, loginId int) (Submissions, error) {
+	return bs.loadSubmissions(tileId, &loginId)
+}
+
+func (bs *BingoService) LoadAllSubmissionsForTile(tileId int) (Submissions, error) {
+	return bs.loadSubmissions(tileId, nil)
+}
+
+func (bs *BingoService) loadSubmissions(tileId int, loginId *int) (Submissions, error) {
+	fail := func(err error) error {
+		return fmt.Errorf("loadSubmissions: %w", err)
+	}
+
+	query := `SELECT s.id, s.login_id, l.name, s.tile_id, s.date, s.state
+	FROM public.Submissions s 
+	JOIN public.logins l ON l.id = s.login_id
+	WHERE tile_id = $1`
+	if loginId != nil {
+		query = query + " AND login_id = $2"
+	}
+
+	stmt, err := bs.store.Db.Prepare(query)
+	if err != nil {
+		return nil, fail(err)
+	}
+	defer stmt.Close()
+
+	var rows *sql.Rows
+
+	if loginId != nil {
+		rows, err = stmt.Query(tileId, loginId)
+		if err != nil {
+			return nil, fail(err)
+		}
+	} else {
+		rows, err = stmt.Query(tileId)
+	}
+
+	submissions := make(map[string][]Submission)
+	for rows.Next() {
+		var s Submission
+		var team string
+		err := rows.Scan(&s.Id, &s.LoginId, &team, &s.TileId, &s.SubmittedAt, &s.State)
+		if err != nil {
+			log.Printf("Something happened,")
+		}
+		subs, ok := submissions[team]
+
+		s.LoadImages(bs.store.Db)
+
+		log.Printf("TEAM NAME: %s", team)
+		log.Printf("SUBMISSION: %#v", s)
+		log.Printf("TEAM SUBMISSIONS: %#v", subs)
+		if !ok {
+			submissions[team] = []Submission{s}
+		} else {
+			submissions[team] = append(subs, s)
+		}
+	}
+
+	return submissions, nil
+}
+
 func (bs *BingoService) CreateSubmission(tileId int, loginId int, filePaths []string) error {
 	fail := func(err error) error {
 		return fmt.Errorf("CreateSubmission: %w", err)
@@ -95,19 +250,37 @@ func (bs *BingoService) CreateSubmission(tileId int, loginId int, filePaths []st
 	}
 	defer tx.Rollback()
 
-	query := `INSERT INTO public.submissions (login_id, tile_id, date) values ($1,$2,$3) returning id`
+	var submissionId int
+	query := `SELECT id FROM public.submissions WHERE tile_id = $1 AND login_id = $2`
+
 	stmt, err := tx.Prepare(query)
 	if err != nil {
 		return fail(err)
 	}
+	defer stmt.Close()
 
-	var submissionId int
+	if err := stmt.QueryRow(tileId, loginId).Scan(&submissionId); err != nil {
+		log.Printf("###########################################################")
+		log.Printf("Error is: %#v", err)
+		log.Printf("No submission yet.... FR? %d", submissionId)
+		log.Printf("###########################################################")
+		query = `INSERT INTO public.submissions (login_id, tile_id, date) values ($1,$2,$3) returning id`
+		stmt, err = tx.Prepare(query)
+		if err != nil {
+			return fail(err)
+		}
+		defer stmt.Close()
 
-	if err := stmt.QueryRow(
-		tileId, loginId, time.Now(),
-	).Scan(&submissionId); err != nil {
-		return fail(err)
+		if err := stmt.QueryRow(
+			loginId, tileId, time.Now(),
+		).Scan(&submissionId); err != nil {
+			return fail(err)
+		}
 	}
+	log.Printf("###########################################################")
+	log.Printf("No error")
+	log.Printf("Submission exists... %d", submissionId)
+	log.Printf("###########################################################")
 
 	var (
 		placeholders []string
@@ -137,7 +310,8 @@ func (bs *BingoService) CreateSubmission(tileId int, loginId int, filePaths []st
 		return fail(err)
 	}
 
-	return nil
+	_, err = bs.UpdateSubmissionState(submissionId, SUBMITTED)
+	return err
 }
 
 func (bs *BingoService) CreateTemplateTile(t Tile) error {
@@ -272,12 +446,56 @@ func (bs *BingoService) GetBingo(bingoId int) (Bingo, error) {
 		return Bingo{}, err
 	}
 
-	err = bingo.loadTiles(bs.store.Db)
+	err = bingo.loadTiles(bs)
 	if err != nil {
 		return Bingo{}, fmt.Errorf("Error during loading tiles: %w", err)
 	}
 
 	return bingo, nil
+}
+
+func (bs *BingoService) loadSubmissionById(submissionId int) (Submission, error) {
+	query := `SELECT s.id, s.login_id, s.tile_id, s.date, s.state
+	FROM public.submissions s 
+	WHERE s.id = $1`
+
+	stmt, err := bs.store.Db.Prepare(query)
+	if err != nil {
+		return Submission{}, err
+	}
+	defer stmt.Close()
+
+	var s Submission
+	if err := stmt.QueryRow(submissionId).Scan(&s.Id, &s.LoginId, &s.TileId, &s.SubmittedAt, &s.State); err != nil {
+		return Submission{}, err
+	}
+
+	return s, nil
+}
+
+func (bs *BingoService) UpdateSubmissionState(submissionId int, state State) (Submission, error) {
+	query := `UPDATE public.submissions SET state = $1 WHERE id = $2`
+
+	stmt, err := bs.store.Db.Prepare(query)
+	if err != nil {
+		return Submission{}, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(state, submissionId)
+	if err != nil {
+		return Submission{}, err
+	}
+
+	s, err := bs.loadSubmissionById(submissionId)
+	if err != nil {
+		return Submission{}, err
+	}
+	log.Printf("###########################################################")
+	log.Printf("Error is: %#v", err)
+	log.Printf("No submission yet.... FR? %d", submissionId)
+	log.Printf("###########################################################")
+	return s, nil
 }
 
 func (bs *BingoService) UpdateTile(t Tile) error {
@@ -312,9 +530,11 @@ func (bs *BingoService) LoadTile(id int) (Tile, error) {
 	return t, nil
 }
 
-func (b *Bingo) loadTiles(db *sql.DB) error {
-	query := `SELECT id, imagepath, description, bingo_id FROM tiles WHERE bingo_id = $1 ORDER BY id ASC`
-	stmt, err := db.Prepare(query)
+func (b *Bingo) loadTiles(bs *BingoService) error {
+	query := `SELECT t.id, t.imagepath, t.description, t.bingo_id
+	FROM tiles t 
+	WHERE bingo_id = $1 ORDER BY id ASC`
+	stmt, err := bs.store.Db.Prepare(query)
 	if err != nil {
 		return fmt.Errorf("Error during statement preparation: %w", err)
 	}
@@ -323,12 +543,56 @@ func (b *Bingo) loadTiles(db *sql.DB) error {
 	rows, err := stmt.Query(b.Id)
 
 	var tiles Tiles
-	for rows.Next() {
-		var t Tile
-		rows.Scan(&t.Id, &t.ImagePath, &t.Description, &t.BingoId)
-		tiles = append(tiles, t)
+
+	tChan := make(chan Tile)
+	go func() {
+		wg := sync.WaitGroup{}
+		for rows.Next() {
+			var t Tile
+			rows.Scan(&t.Id, &t.ImagePath, &t.Description, &t.BingoId)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				s, _ := bs.LoadAllSubmissionsForTile(t.Id)
+				t.Submissions = s
+				tChan <- t
+			}()
+		}
+		wg.Wait()
+		close(tChan)
+	}()
+
+	insertAt := func(data Tiles, i int, v Tile) Tiles {
+		if i == len(data) {
+			// Insert at end is the easy case.
+			return append(data, v)
+		}
+
+		// make space for the inserted element by shifting
+		// values at the insertion index up one index. the call
+		// to append does not allocate memory when cap(data) is
+		// greater ​than len(data).
+		data = append(data[:i+1], data[i:]...)
+
+		// Insert the new element.
+		data[i] = v
+
+		// Return the updated slice.
+		return data
+	}
+
+	insertSorted := func(data Tiles, v Tile) Tiles {
+		i := sort.Search(len(data), func(i int) bool { return data[i].Id >= v.Id })
+		return insertAt(data, i, v)
+	}
+	for t := range tChan {
+		tiles = insertSorted(tiles, t)
 	}
 	b.Tiles = tiles
+	log.Printf("###########################################################")
+	log.Printf("No error")
+	log.Printf("Bingo... %#v", b)
+	log.Printf("###########################################################")
 	return nil
 }
 

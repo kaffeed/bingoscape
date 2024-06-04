@@ -3,8 +3,9 @@ package auth
 import "github.com/kaffeed/bingoscape/services"
 import "github.com/kaffeed/bingoscape/views/layout"
 import "github.com/kaffeed/bingoscape/views/components"
+import "fmt"
 
-templ Tile(isManagement bool, tile services.Tile) {
+templ Tile(isManagement bool, tile services.Tile, loginId int) {
 	<section class="mx-auto w-2/5 flex flex-col gap-8 text-center">
 		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
 			<figure><img src={ tile.ImagePath } class="tile-card-image justify-center" alt="Album"/></figure>
@@ -20,8 +21,12 @@ templ Tile(isManagement bool, tile services.Tile) {
 				}
 			</div>
 		</div>
+		if !isManagement && tile.Stats(loginId).State != services.ACCEPTED {
+			<div class="divider"></div>
+			@components.SubmissionForm(isManagement, tile.Id)
+		}
 		<div class="divider"></div>
-		@components.SubmissionForm(isManagement, tile.Id, tile.BingoId)
+		<div hx-get={ fmt.Sprintf("/tiles/%d/submissions", tile.Id) } hx-swap="outerHTML" hx-trigger="load"></div>
 	</section>
 }
 
