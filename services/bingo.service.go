@@ -155,16 +155,12 @@ func (bs *BingoService) CreateSubmissionComment(submissionId, uid int, comment s
 	query := `INSERT INTO public.submission_comments (submission_id, login_id, comment, created_at) values ($1, $2, $3, $4)`
 	stmt, err := bs.Store.Db.Prepare(query)
 	if err != nil {
-		log.Printf("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
-		log.Fatalf("Error during comment createion %#v", err)
 		return err
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(submissionId, uid, comment, time.Now())
 	if err != nil {
-		log.Printf("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
-		log.Fatalf("Error during comment createion %#v", err)
 		return err
 	}
 	return nil

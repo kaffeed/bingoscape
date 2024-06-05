@@ -9,6 +9,7 @@ import (
 
 	"github.com/kaffeed/bingoscape/services"
 	authviews "github.com/kaffeed/bingoscape/views/auth"
+	components "github.com/kaffeed/bingoscape/views/components"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/a-h/templ"
@@ -32,6 +33,7 @@ type AuthService interface {
 	CreateUser(u services.User) error
 	CheckUsername(username string) (services.User, error)
 	// GetUserById(id int) (services.User, error)
+	GetAllUsers() ([]services.User, error)
 }
 
 func NewAuthHandler(us AuthService) *AuthHandler {
@@ -42,6 +44,42 @@ func NewAuthHandler(us AuthService) *AuthHandler {
 
 type AuthHandler struct {
 	UserServices AuthService
+}
+
+func (ah *AuthHandler) handleUsermanagement(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return fmt.Errorf("invalid type for key 'ISAUTHENTICATED'")
+	}
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+	userName, _ := c.Get(username_key).(string)
+
+	homeView := authviews.Usermanagement(isAuthenticated)
+	c.Set("ISERROR", false)
+
+	return render(c, authviews.UsermanagementIndex(
+		"| Teams and Users",
+		userName,
+		isAuthenticated,
+		isManagement,
+		c.Get("ISERROR").(bool),
+		getFlashmessages(c, "error"),
+		getFlashmessages(c, "success"),
+		homeView,
+	))
+}
+
+func (ah *AuthHandler) handleLoginTable(c echo.Context) error {
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok || !isManagement {
+		return errors.New("Must be management!")
+	}
+
+	u := c.Get(user_id_key).(int)
+	users, _ := ah.UserServices.GetAllUsers()
+	userTable := components.LoginTable(isManagement, users, u)
+
+	return render(c, userTable)
 }
 
 func (ah *AuthHandler) homeHandler(c echo.Context) error {

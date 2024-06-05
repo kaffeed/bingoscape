@@ -209,8 +209,6 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		uid, ok := c.Get(user_id_key).(int)
 
 		if ok {
-			log.Printf("# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
-			log.Printf("Comment: %s\n", comment)
 			err = bh.BingoService.CreateSubmissionComment(submissionId, uid, comment)
 			if err != nil {
 				return err
@@ -333,8 +331,6 @@ func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
 		submissionMap, err = bh.BingoService.LoadUserSubmissions(tileId, uid)
 	}
 
-	log.Printf("Bingo submissions: %#v", submissionMap)
-
 	if err != nil {
 		return err
 	}
@@ -380,7 +376,6 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 		p := filepath.Join(os.Getenv("IMAGE_PATH"), "tiles")
 		dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
 
-		log.Printf("Copying file to %s", dst.Name())
 		if err != nil {
 			return err
 		}
@@ -527,12 +522,16 @@ type ParticipantId struct {
 }
 
 func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
-	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+	var bingoId int
+	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
 
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/")
 	}
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !isManagement {
@@ -544,7 +543,8 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 	}
 
 	if c.Request().Method == "POST" {
-		pId, err := strconv.Atoi(c.FormValue("team"))
+		var pId int
+		err := echo.FormFieldBinder(c).Int("team", &pId).BindError()
 		if err != nil {
 			log.Printf("Error during getting team id")
 			return err
@@ -568,7 +568,9 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 }
 
 func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
-	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+	var bingoId int
+	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
+
 	if err != nil {
 		return errors.New("Can't parse bingoId from params")
 	}
@@ -612,7 +614,8 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 }
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
-	bingoId, err := strconv.Atoi(c.Param("bingoId"))
+	var bingoId int
+	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
 	if !ok {

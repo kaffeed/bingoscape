@@ -61,10 +61,12 @@ templ menuContent(isManagement bool) {
 	}
 	<li>
 		<details>
-			<summary class="text-xl">Bingo</summary>
+			<summary class="text-xl">Usermanagement</summary>
 			<ul class="p-2">
-				<li><a class="text-xl">Submenu 1</a></li>
-				<li><a class="text-xl">Template Tiles</a></li>
+				<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins/create" class="text-xl">
+					Create Login
+				</a>
+				<li><a class="text-xl" href="/logins">Manage</a></li>
 			</ul>
 		</details>
 	</li>

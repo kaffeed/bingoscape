@@ -22,6 +22,33 @@ type UserService struct {
 	UserStore db.Store
 }
 
+func (us *UserService) GetAllUsers() ([]User, error) {
+	query := `select id, name, is_management from public.logins`
+	stmt, err := us.UserStore.Db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+
+	users := []User{}
+
+	for rows.Next() {
+		var u User
+		err := rows.Scan(&u.Id, &u.Username, &u.IsManagement)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+
+	}
+
+	return users, nil
+}
 func (us *UserService) CreateUser(u User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), 8)
 	if err != nil {
