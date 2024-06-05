@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
 	"github.com/kaffeed/bingoscape/db"
 	"github.com/kaffeed/bingoscape/handlers"
@@ -35,6 +37,12 @@ func main() {
 	godotenv.Load()
 	e := echo.New()
 
+	ctx := context.Background()
+	conn, err := pgx.Connect(ctx, os.Getenv("DB"))
+	if err != nil {
+		log.Fatalf("Error connecting to db: %#v", err)
+	}
+	defer conn.Close()
 	e.Static("/", "assets")
 	p := filepath.Join(os.Getenv("IMAGE_PATH"))
 	setupImageDirectories(p)
@@ -46,7 +54,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))
 
-	store, err := db.NewStore(os.Getenv("DB"))
+	store := db.New(conn)
 
 	if err != nil {
 		e.Logger.Fatalf("failed to create store: %s", err)

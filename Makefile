@@ -80,4 +80,9 @@ migration-down:
 ## migration-new: force db version
 .PHONY: migration-new
 migration-new: 
-	goose -dir db/migrations/ create "${migration}" sql
+	goose -dir db/migrations/ -s create "${migration}" sql
+
+## db-version: check database version
+.PHONY: db-version
+db-version: 
+	goose -dir db/migrations/ postgres "${DB}" version
