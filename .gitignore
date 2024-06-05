@@ -31,3 +31,4 @@ go.work.sum
 
 .env
 assets/img/bingoscape-188704671.png
+.DS_Store
