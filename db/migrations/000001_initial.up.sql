@@ -13,12 +13,11 @@ CREATE TABLE IF NOT EXISTS public.bingos
 (
     id serial NOT NULL,
     title character varying(255) NOT NULL,
-    validFrom date NOT NULL,
-    validTo date NOT NULL,
+    validFrom timestamptz NOT NULL,
+    validTo timestamptz NOT NULL,
     rows integer,
     cols integer,
     description character varying(5000),
-    isActive boolean NOT NULL DEFAULT 'false',
     PRIMARY KEY (id)
 );
 
@@ -52,7 +51,7 @@ CREATE TABLE IF NOT EXISTS public.submissions
     id serial NOT NULL,
     login_id serial NOT NULL,
     tile_id serial NOT NULL,
-    date date NOT NULL,
+    date timestamptz NOT NULL,
     comment character varying(5000),
     PRIMARY KEY (id)
 );

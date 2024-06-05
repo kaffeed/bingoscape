@@ -40,6 +40,18 @@ func (us *UserService) CreateUser(u User) error {
 	return err
 }
 
+func (us *UserService) UpdatePassword(uid int, p string) error {
+	_ = `SELECT id, password, name, is_management FROM logins`
+
+	return nil
+}
+
+func (us *UserService) DeleteUser(uid int) error {
+	_ = `SELECT id, password, name, is_management FROM logins`
+
+	return nil
+}
+
 func (us *UserService) CheckUsername(username string) (User, error) {
 
 	query := `SELECT id, password, name, is_management FROM logins

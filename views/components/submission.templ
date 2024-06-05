@@ -2,8 +2,9 @@ package components
 
 import "github.com/kaffeed/bingoscape/services"
 import "fmt"
+import "time"
 
-templ Submissions(isManagement bool, s services.Submissions) {
+templ Submissions(isManagement bool, s services.Submissions, loc *time.Location) {
 	for key, val := range s {
 		for _, s := range val {
 			<div class="flex flex-row w-full">
@@ -15,7 +16,7 @@ templ Submissions(isManagement bool, s services.Submissions) {
 					</ul>
 				</div>
 			</div>
-			@SubmissionHeader(isManagement, s)
+			@SubmissionHeader(isManagement, s, loc)
 			<div class="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
 				<div class="-m-1 flex flex-wrap md:-m-2">
 					for _, path := range s.ImagePaths {
@@ -37,13 +38,33 @@ templ Submissions(isManagement bool, s services.Submissions) {
 	}
 }
 
-templ SubmissionHeader(isManagement bool, s services.Submission) {
+templ SubmissionHeader(isManagement bool, s services.Submission, loc *time.Location) {
 	<div id={ fmt.Sprintf("submissionHeader-%d", s.Id) } class="flex flex-col content-center gap-2">
+		@SubmissionComments(s, loc)
 		@SubmissionBadge(s.State, true)
 		if isManagement {
 			@SubmissionState(s)
 		}
 	</div>
+}
+
+templ SubmissionIcons(s services.State) {
+	switch s {
+		case services.SUBMITTED:
+			<div class="text-5xl text-info flex">
+				<i class="fa-solid fa-paper-plane"></i>
+			</div>
+		case services.NEEDS_REVIEW:
+			<div class="text-5xl text-warning flex">
+				<i class="fa-solid fa-circle-exclamation"></i>
+			</div>
+		case services.ACCEPTED:
+			<div class="text-5xl text-success flex mb-6 mx-auto">
+				<i class="fa-solid fa-check"></i>
+			</div>
+		default:
+			<span>No submission yet</span>
+	}
 }
 
 templ SubmissionBadge(s services.State, floatRight bool) {
@@ -65,23 +86,58 @@ templ SubmissionBadge(s services.State, floatRight bool) {
 	}
 }
 
+templ comment(c services.Comment, loc *time.Location) {
+	<div class="chat chat-start">
+		<div class="chat-header">
+			{ c.By }
+		</div>
+		<div class="chat-bubble">{ c.Comment }</div>
+		<div class="chat-footer opacity-50">
+			{ c.CreatedAt.Format("2006-01-02 15:04") }
+		</div>
+	</div>
+}
+
+templ SubmissionComments(s services.Submission, loc *time.Location) {
+	<details class="collapse bg-base-200">
+		<summary class="collapse-title text-xl font-medium">{ fmt.Sprintf("Comments (%d)", len(s.Comments)) }</summary>
+		<div class="collapse-content">
+			for _, c := range s.Comments {
+				@comment(c, loc)
+			}
+		</div>
+	</details>
+}
+
 templ SubmissionState(s services.Submission) {
-	<div class="join">
-		<button
-			class="btn btn-warning join-item"
-			hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.NEEDS_REVIEW) }
-			hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
-			hx-swap="outerHTML"
-		>
-			Needs Action
-		</button>
-		<button
-			class="btn btn-success join-item"
-			hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.ACCEPTED) }
-			hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
-			hx-swap="outerHTML"
-		>
-			Accept
-		</button>
+	<div class="grid grid-rows-2 gap-2">
+		<label class="flex flex-col gap-2 col-span-2">
+			<span>Comment:</span>
+			<input
+				class="input input-bordered input-primary bg-slate-800"
+				type="text"
+				name="comment"
+			/>
+		</label>
+		<div class="join float-right w-full" hx-include="[name='comment']">
+			<button
+				class="btn btn-warning join-item"
+				hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.NEEDS_REVIEW) }
+				hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+				hx-indicator={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+				hx-swap="outerHTML"
+			>
+				Action Required
+			</button>
+			<button
+				class="btn btn-success join-item"
+				hx-put={ fmt.Sprintf("/tiles/submissions/%d/%d", s.Id, services.ACCEPTED) }
+				hx-target={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+				hx-indicator={ fmt.Sprintf("#submissionHeader-%d", s.Id) }
+				hx-swap="outerHTML"
+			>
+				Accept
+			</button>
+		</div>
 	</div>
 }

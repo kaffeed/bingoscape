@@ -140,6 +140,8 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		tzone := ""
 		if len(c.Request().Header["X-Timezone"]) != 0 {
 			tzone = c.Request().Header["X-Timezone"][0]
+			log.Printf("##################################################")
+			log.Printf("TZone: %#v", tzone)
 		}
 
 		// Authentication goes here

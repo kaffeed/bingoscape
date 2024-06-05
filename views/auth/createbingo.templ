@@ -6,7 +6,7 @@ templ CreateBingo(isManagement bool) {
 	<section class="card w-fit bg-base-200 shadow-xl mx-auto mb-8">
 		<div class="card-body pb-2">
 			<h1 class="card-title border-b border-b-slate-600 pb-[4px]">
-				Create a new Bingo
+				New Bingo 
 			</h1>
 			<form
 				hx-swap="transition:true"
@@ -14,86 +14,111 @@ templ CreateBingo(isManagement bool) {
 				action=""
 				method="post"
 			>
-				<label class="flex flex-col justify-start gap-2">
-					Title:
-					<input
-						class="input input-bordered input-primary bg-slate-800"
-						type="text"
-						name="title"
-						required
-						minlength="4"
-						maxlength="64"
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2">
-					Description:
-					<input
-						class="textarea textarea-bordered"
-						type="textarea"
-						name="description"
-						required
-						minlength="4"
-						maxlength="5000"
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2 relative">
-					Active from:
-					<input
-						class="input input-bordered input-primary bg-slate-800"
-						type="date"
-						name="validfrom"
-						required
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2 relative">
-					Active to:
-					<input
-						class="input input-bordered input-primary bg-slate-800"
-						type="date"
-						name="validfrom"
-						required
-						disabled?={ !isManagement }
-						if !isManagement {
-							value="disabled"
-						}
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2">
-					# Rows:
-					<input
-						type="number"
-						name="rows"
-						class="input input-bordered input-primary bg-slate-800"
-						placeholder="5"
-						min="2"
-						max="12"
-						required
-					/>
-				</label>
-				<label class="flex flex-col justify-start gap-2">
-					# Columns:
-					<input
-						type="number"
-						name="cols"
-						class="input input-bordered input-primary bg-slate-800"
-						placeholder="5"
-						min="2"
-						max="12"
-						required
-					/>
-				</label>
+				<div class="grid grid-cols-2 gap-2">
+					<label class="flex flex-col justify-start gap-2 col-span-2">
+						Title:
+						<input
+							class="input input-bordered input-primary bg-slate-800"
+							type="text"
+							name="title"
+							required
+							minlength="4"
+							maxlength="64"
+							disabled?={ !isManagement }
+							if !isManagement {
+								value="disabled"
+							}
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2 col-span-2">
+						<span class="gap-2">
+							<i class="fa-solid fa-user-secret fa-fw"></i>&nbsp; Code-Phrase:
+						</span>
+						<input
+							class="input input-bordered input-primary bg-slate-800"
+							type="text"
+							name="codephrase"
+							required
+							minlength="4"
+							maxlength="255"
+							disabled?={ !isManagement }
+							if !isManagement {
+								value="disabled"
+							}
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2 col-span-2">
+						Description:
+						<input
+							class="input input-bordered input-primary bg-slate-800"
+							type="textarea"
+							name="description"
+							required
+							minlength="4"
+							maxlength="5000"
+							disabled?={ !isManagement }
+							if !isManagement {
+								value="disabled"
+							}
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2 relative">
+						<span class="gap-2">
+							<i class="fa-solid fa-hourglass-start fa-fw"></i>&nbsp; Starts at (UTC):
+						</span>
+						<input
+							class="input input-bordered input-primary bg-slate-800"
+							type="datetime-local"
+							name="validfrom"
+							required
+							disabled?={ !isManagement }
+							if !isManagement {
+								value="disabled"
+							}
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2 relative">
+						<span>
+							<i class="fa-solid fa-hourglass-end fa-fw"></i>&nbsp; Ends at (UTC):
+						</span>
+						<input
+							class="input input-bordered input-primary bg-slate-800"
+							type="datetime-local"
+							name="validto"
+							required
+							disabled?={ !isManagement }
+							if !isManagement {
+								value="disabled"
+							}
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2">
+						# Rows:
+						<input
+							type="number"
+							name="rows"
+							class="input input-bordered input-primary bg-slate-800"
+							placeholder="5"
+							value="5"
+							min="2"
+							max="12"
+							required
+						/>
+					</label>
+					<label class="flex flex-col justify-start gap-2">
+						# Columns:
+						<input
+							type="number"
+							name="cols"
+							class="input input-bordered input-primary bg-slate-800"
+							placeholder="5"
+							value="5"
+							min="2"
+							max="12"
+							required
+						/>
+					</label>
+				</div>
 				<footer class="card-actions justify-end">
 					<button class="badge badge-primary px-6 py-4 hover:scale-[1.1]" disabled?={ !isManagement }>
 						Create

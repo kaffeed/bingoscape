@@ -12,9 +12,10 @@ templ BingoDetail(isManagement bool, bingo services.Bingo, participants services
 				<div class="hero-content text-center">
 					<div class="max-w-md">
 						<h1 class="text-5xl font-bold">{ bingo.Title }</h1>
+						<h1 class="text-2xl font-bold">{ bingo.Title }</h1>
 						<p class="py-6">{ bingo.Title }</p>
 						if isManagement {
-							<button class="btn btn-primary">Get Started</button>
+							<button class="btn btn-info">Set as ready</button>
 						}
 					</div>
 				</div>
@@ -25,16 +26,7 @@ templ BingoDetail(isManagement bool, bingo services.Bingo, participants services
 		bingo.Cols), "gap-1" }
 			>
 				for _, t := range bingo.Tiles {
-					<div
-						hx-get={ fmt.Sprintf("/tiles/%d", t.Id) }
-						class="cursor-pointer"
-						hx-swap="transition:true"
-						hx-target="body"
-						hx-push-url="true"
-					>
-						<img src={ t.ImagePath } class="grid-item" alt="Shoes"/>
-						@stats(isManagement, t.Stats(loginId))
-					</div>
+					@tileView(isManagement, t, loginId)
 				}
 			</div>
 		</section>
@@ -43,6 +35,33 @@ templ BingoDetail(isManagement bool, bingo services.Bingo, participants services
 			@components.BingoTeams(isManagement, bingo, participants, possibleParticipants)
 		</section>
 		<div class="divider"></div>
+	</div>
+}
+
+templ tileView(isManagement bool, t services.Tile, loginId int) {
+	<div
+		hx-get={ fmt.Sprintf("/tiles/%d", t.Id) }
+		class="cursor-pointer relative "
+		hx-swap="transition:true"
+		hx-target="body"
+		hx-push-url="true"
+	>
+		<img src={ t.ImagePath } class="grid-item" alt="Shoes"/>
+		if isManagement {
+			if t.Stats(loginId).HasSubmissions {
+				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
+				<div class="absolute inset-0 flex items-center justify-center">
+					@stats(isManagement, t.Stats(loginId))
+				</div>
+			}
+		} else {
+			if t.Stats(loginId).State != -1 {
+				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
+				<div class="absolute inset-0 flex items-center justify-center">
+					@stats(isManagement, t.Stats(loginId))
+				</div>
+			}
+		}
 	</div>
 }
 
@@ -64,7 +83,7 @@ templ stats(isManagement bool, s services.TileStats) {
 			</div>
 		</div>
 	} else {
-		@components.SubmissionBadge(s.State, false)
+		@components.SubmissionIcons(s.State)
 	}
 }
 
