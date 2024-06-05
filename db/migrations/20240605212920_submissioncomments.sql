@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 alter table public.submissions drop column comment;
 
 CREATE TABLE IF NOT EXISTS public.submission_comments
@@ -26,3 +28,11 @@ ALTER TABLE IF EXISTS public.submission_comments
     NOT VALID;
 END;
 
+
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+alter table public.submissions add column comment character varying;
+drop table public.submission_comments;
+-- +goose StatementEnd

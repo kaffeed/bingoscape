@@ -70,20 +70,14 @@ templ-watch:
 ## migration-up: migrate database-up
 .PHONY: migration-up
 migration-up: 
-	migrate -path db/migrations/ -database "${DB}" -verbose up
+	goose -dir db/migrations/ postgres "${DB}" up
 
 ## migration-down: run migrate database-down
 .PHONY: migration-down
 migration-down: 
-	migrate -path db/migrations/ -database "${DB}" -verbose down
-
-## migration-fix: force db version
-.PHONY: migration-fix
-migration-fix: 
-	migrate -path db/migrations/ -database "${DB}" force ${version}
-
+	goose -dir db/migrations/ postgres "${DB}" down
 
 ## migration-new: force db version
 .PHONY: migration-new
 migration-new: 
-	migrate create -dir db/migrations/ -seq -ext sql  ${migration}
+	goose -dir db/migrations/ create "${migration}" sql

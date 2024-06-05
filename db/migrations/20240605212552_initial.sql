@@ -1,5 +1,5 @@
-BEGIN;
-
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS public.logins
 (
     id serial NOT NULL,
@@ -111,3 +111,16 @@ ALTER TABLE IF EXISTS public.submission_images
     ON DELETE NO ACTION
     NOT VALID;
 END;
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+SELECT 'down SQL query';
+drop table public.submission_images;
+drop table public.submissions;
+drop table public.tiles;
+drop table public.template_tiles;
+drop table public.bingos_logins;
+drop table public.logins;
+drop table public.bingos;
+-- +goose StatementEnd
