@@ -46,7 +46,7 @@ DELETE FROM bingos WHERE id = $1;
 SELECT id FROM public.submissions WHERE tile_id = $1 AND login_id = $2;
 
 -- name: CreateSubmission :one
-INSERT INTO public.submissions (login_id, tile_id) values ($1, $2) returning *;
+INSERT INTO public.submissions (login_id, tile_id, state) values ($1, $2, $3) returning *;
 
 -- name: CreateSubmissionImage :exec 
 INSERT INTO submission_images(path, submission_id) VALUES ($1, $2); 

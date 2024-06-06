@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"sort"
 	"sync"
 
@@ -15,14 +14,6 @@ import (
 type BingoService struct {
 	Db    *pgxpool.Pool
 	Store *db.Queries
-}
-
-type Tile struct {
-	Id          int
-	Title       string
-	ImagePath   string
-	Description string
-	BingoId     int
 }
 
 func NewBingoService(store *db.Queries, pool *pgxpool.Pool) *BingoService {
@@ -106,6 +97,7 @@ func (bs *BingoService) CreateSubmission(tileId int, loginId int32, filePaths []
 		s, err := qtx.CreateSubmission(context.Background(), db.CreateSubmissionParams{
 			LoginID: int32(loginId),
 			TileID:  int32(tileId),
+			State:   db.SubmissionstateSubmitted,
 		})
 		if err != nil {
 			return err
@@ -123,11 +115,6 @@ func (bs *BingoService) CreateSubmission(tileId int, loginId int32, filePaths []
 	if err = tx.Commit(context.Background()); err != nil {
 		return fail(err)
 	}
-
-	_, err = bs.Store.UpdateSubmissionState(context.Background(), db.UpdateSubmissionStateParams{
-		ID:    submissionId,
-		State: db.SubmissionstateSubmitted,
-	})
 	return err
 }
 
@@ -171,9 +158,6 @@ func (bs *BingoService) LoadTilesForBingo(bingoId int) ([]views.TileModel, error
 		return nil, err
 	}
 
-	log.Println("##################################################")
-	log.Printf("# DB TILES: %#v\n", tiles)
-	log.Println("##################################################")
 	tChan := make(chan views.TileModel)
 	go func() {
 		wg := sync.WaitGroup{}
@@ -196,20 +180,12 @@ func (bs *BingoService) LoadTilesForBingo(bingoId int) ([]views.TileModel, error
 
 	insertAt := func(data []views.TileModel, i int, v views.TileModel) []views.TileModel {
 		if i == len(data) {
-			// Insert at end is the easy case.
 			return append(data, v)
 		}
-
-		// make space for the inserted element by shifting
-		// values at the insertion index up one index. the call
-		// to append does not allocate memory when cap(data) is
-		// greater ​than len(data).
 		data = append(data[:i+1], data[i:]...)
 
-		// Insert the new element.
 		data[i] = v
 
-		// Return the updated slice.
 		return data
 	}
 
@@ -222,10 +198,6 @@ func (bs *BingoService) LoadTilesForBingo(bingoId int) ([]views.TileModel, error
 	for t := range tChan {
 		res = insertSorted(res, t)
 	}
-
-	log.Println("##################################################")
-	log.Printf("# TILES: %#v\n", res)
-	log.Println("##################################################")
 
 	return res, nil
 }

@@ -40,11 +40,11 @@ templ Submissions(isManagement bool, s views.Submissions, loc *time.Location) {
 }
 
 templ SubmissionHeader(isManagement bool, s views.SubmissionData, loc *time.Location) {
-	<div id={ fmt.Sprintf("submissionHeader-%d", s.Submission.ID) } class="flex flex-col content-center gap-2">
+	<div id={ fmt.Sprintf("submissionHeader-%d", s.ID) } class="flex flex-col content-center gap-2">
 		@SubmissionComments(s.Comments, loc)
-		@SubmissionBadge(s.Submission.State, true)
+		@SubmissionBadge(s.State, true)
 		if isManagement {
-			@SubmissionState(s.Submission)
+			@SubmissionState(s)
 		}
 	</div>
 }
@@ -110,7 +110,7 @@ templ SubmissionComments(comments []db.GetCommentsForSubmissionRow, loc *time.Lo
 	</details>
 }
 
-templ SubmissionState(s db.Submission) {
+templ SubmissionState(s views.SubmissionData) {
 	<div class="grid grid-rows-2 gap-2">
 		<label class="flex flex-col gap-2 col-span-2">
 			<span>Comment:</span>

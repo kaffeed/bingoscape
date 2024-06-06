@@ -82,16 +82,17 @@ func (q *Queries) CreateLogin(ctx context.Context, arg CreateLoginParams) error 
 }
 
 const createSubmission = `-- name: CreateSubmission :one
-INSERT INTO public.submissions (login_id, tile_id) values ($1, $2) returning id, login_id, tile_id, date, state
+INSERT INTO public.submissions (login_id, tile_id, state) values ($1, $2, $3) returning id, login_id, tile_id, date, state
 `
 
 type CreateSubmissionParams struct {
 	LoginID int32
 	TileID  int32
+	State   Submissionstate
 }
 
 func (q *Queries) CreateSubmission(ctx context.Context, arg CreateSubmissionParams) (Submission, error) {
-	row := q.db.QueryRow(ctx, createSubmission, arg.LoginID, arg.TileID)
+	row := q.db.QueryRow(ctx, createSubmission, arg.LoginID, arg.TileID, arg.State)
 	var i Submission
 	err := row.Scan(
 		&i.ID,

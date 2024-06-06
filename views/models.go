@@ -7,9 +7,9 @@ type PossibleBingoParticipants []db.GetPossibleBingoParticipantsRow
 type BingoParticipants []db.GetBingoParticipantsRow
 
 type SubmissionData struct {
-	Submission db.Submission
-	Comments   []db.GetCommentsForSubmissionRow
-	Images     []string
+	db.Submission
+	Comments []db.GetCommentsForSubmissionRow
+	Images   []string
 }
 type BingoDetailModel struct {
 	db.Bingo
