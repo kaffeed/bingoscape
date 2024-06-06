@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/sessions"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/kaffeed/bingoscape/db"
 	"github.com/kaffeed/bingoscape/handlers"
@@ -38,11 +38,11 @@ func main() {
 	e := echo.New()
 
 	ctx := context.Background()
-	conn, err := pgx.Connect(ctx, os.Getenv("DB"))
+	connpool, err := pgxpool.New(ctx, os.Getenv("DB"))
 	if err != nil {
 		log.Fatalf("Error connecting to db: %#v", err)
 	}
-	defer conn.Close()
+	defer connpool.Close()
 	e.Static("/", "assets")
 	p := filepath.Join(os.Getenv("IMAGE_PATH"))
 	setupImageDirectories(p)
@@ -54,14 +54,14 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))
 
-	store := db.New(conn)
+	store := db.New(connpool)
 
 	if err != nil {
 		e.Logger.Fatalf("failed to create store: %s", err)
 	}
 
 	us := services.NewUserServices(store)
-	bs := services.NewBingoService(store)
+	bs := services.NewBingoService(store, connpool)
 	ah := handlers.NewAuthHandler(us)
 	bh := handlers.NewBingoHandler(bs, us)
 

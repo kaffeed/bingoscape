@@ -7,67 +7,46 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func NewUserServices(store db.Queries) *UserService {
+func NewUserServices(store *db.Queries) *UserService {
 	return &UserService{
 		UserStore: store,
 	}
 }
 
 type UserService struct {
-	UserStore db.Queries
+	UserStore *db.Queries
 }
 
 func (us *UserService) GetAllUsers() ([]db.Login, error) {
 	return us.UserStore.GetAllLogins(context.Background())
 }
 
-func (us *UserService) CreateUser(u db.CreateLoginParams) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), 8)
+func (us *UserService) CreateUser(params db.CreateLoginParams) error {
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), 8)
 	if err != nil {
 		return err
 	}
 
-	u.Password = string(hashedPassword)
-	return us.UserStore.CreateLogin(context.Background(), u)
+	params.Password = string(hashedPassword)
+	return us.UserStore.CreateLogin(context.Background(), params)
 }
 
-func (us *UserService) UpdatePassword(uid int, p string) error {
-	_ = `SELECT id, password, name, is_management FROM logins`
-
-	return nil
-}
-
-func (us *UserService) DeleteUser(uid int) error {
-	_ = `SELECT id, password, name, is_management FROM logins`
-
-	return nil
-}
-
-func (us *UserService) CheckUsername(username string) (User, error) {
-
-	query := `SELECT id, password, name, is_management FROM logins
-		WHERE name = $1`
-
-	stmt, err := us.UserStore.Db.Prepare(query)
+func (us *UserService) UpdatePassword(uid int32, p string) (db.Login, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p), 8)
 	if err != nil {
-		return User{}, err
+		return db.Login{}, err
 	}
+	return us.UserStore.UpdateLoginPassword(context.Background(), db.UpdateLoginPasswordParams{
+		ID:       uid,
+		Password: string(hashedPassword),
+	})
+}
 
-	defer stmt.Close()
+func (us *UserService) DeleteUser(uid int32) error {
+	return us.UserStore.DeleteLogin(context.Background(), uid)
+}
 
-	u := User{}
-	err = stmt.QueryRow(
-		username,
-	).Scan(
-		&u.Id,
-		&u.Password,
-		&u.Username,
-		&u.IsManagement,
-	)
-
-	if err != nil {
-		return User{}, err
-	}
-
-	return u, nil // TODO:
+func (us *UserService) CheckUsername(username string) (db.Login, error) {
+	return us.UserStore.GetLoginByName(context.Background(), username)
 }

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kaffeed/bingoscape/services"
+	"github.com/kaffeed/bingoscape/db"
 	authviews "github.com/kaffeed/bingoscape/views/auth"
 	components "github.com/kaffeed/bingoscape/views/components"
 	"golang.org/x/crypto/bcrypt"
@@ -30,10 +30,11 @@ const (
 /********** Handlers for Auth Views **********/
 
 type AuthService interface {
-	CreateUser(u services.User) error
-	CheckUsername(username string) (services.User, error)
-	// GetUserById(id int) (services.User, error)
-	GetAllUsers() ([]services.User, error)
+	CreateUser(params db.CreateLoginParams) error
+	CheckUsername(username string) (db.Login, error)
+	GetAllUsers() ([]db.Login, error)
+	DeleteUser(uid int32) error
+	UpdatePassword(uid int32, p string) (db.Login, error)
 }
 
 func NewAuthHandler(us AuthService) *AuthHandler {
@@ -75,7 +76,7 @@ func (ah *AuthHandler) handleLoginTable(c echo.Context) error {
 		return errors.New("Must be management!")
 	}
 
-	u := c.Get(user_id_key).(int)
+	u := c.Get(user_id_key).(int32)
 	users, _ := ah.UserServices.GetAllUsers()
 	userTable := components.LoginTable(isManagement, users, u)
 
@@ -138,7 +139,7 @@ func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Please provide valid credentials")
 		}
 
-		if userId, ok := sess.Values[user_id_key].(int); ok && userId != 0 {
+		if userId, ok := sess.Values[user_id_key].(int32); ok && userId != 0 {
 			c.Set(user_id_key, userId) // set the user_id in the context
 		}
 
@@ -222,8 +223,8 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		// their ID and the client's time zone
 		sess.Values = map[interface{}]interface{}{
 			auth_key:     true,
-			user_id_key:  user.Id,
-			username_key: user.Username,
+			user_id_key:  user.ID,
+			username_key: user.Name,
 			tzone_key:    tzone,
 			mgmnt_key:    user.IsManagement,
 		}

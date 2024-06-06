@@ -5,17 +5,63 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Submissionstate string
+
+const (
+	SubmissionstateSubmitted      Submissionstate = "Submitted"
+	SubmissionstateActionRequired Submissionstate = "ActionRequired"
+	SubmissionstateAccepted       Submissionstate = "Accepted"
+)
+
+func (e *Submissionstate) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Submissionstate(s)
+	case string:
+		*e = Submissionstate(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Submissionstate: %T", src)
+	}
+	return nil
+}
+
+type NullSubmissionstate struct {
+	Submissionstate Submissionstate
+	Valid           bool // Valid is true if Submissionstate is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullSubmissionstate) Scan(value interface{}) error {
+	if value == nil {
+		ns.Submissionstate, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Submissionstate.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullSubmissionstate) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Submissionstate), nil
+}
 
 type Bingo struct {
 	ID          int32
 	Title       string
-	Validfrom   pgtype.Timestamptz
-	Validto     pgtype.Timestamptz
-	Rows        pgtype.Int4
-	Cols        pgtype.Int4
-	Description pgtype.Text
+	Validfrom   pgtype.Timestamp
+	Validto     pgtype.Timestamp
+	Rows        int32
+	Cols        int32
+	Description string
 	Codephrase  string
 	Ready       bool
 }
@@ -36,8 +82,8 @@ type Submission struct {
 	ID      int32
 	LoginID int32
 	TileID  int32
-	Date    pgtype.Timestamptz
-	State   int32
+	Date    pgtype.Timestamp
+	State   Submissionstate
 }
 
 type SubmissionComment struct {

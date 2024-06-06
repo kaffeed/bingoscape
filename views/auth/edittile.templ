@@ -1,36 +1,37 @@
 package auth
 
-import "github.com/kaffeed/bingoscape/services"
 import "github.com/kaffeed/bingoscape/views/layout"
 import "github.com/kaffeed/bingoscape/views/components"
 import "fmt"
+import "github.com/kaffeed/bingoscape/views"
+import "github.com/kaffeed/bingoscape/db"
 
-templ Tile(isManagement bool, tile services.Tile, loginId int) {
+templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 	<section class="mx-auto w-2/5 flex flex-col gap-8 text-center">
 		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
-			<figure><img src={ tile.ImagePath } class="tile-card-image justify-center" alt="Album"/></figure>
+			<figure><img src={ tm.Tile.Imagepath } class="tile-card-image justify-center" alt="Album"/></figure>
 			<div class="card-body">
 				if !isManagement {
-					<h2 class="card-title">{ tile.Title }</h2>
-					<p>{ tile.Description }</p>
+					<h2 class="card-title">{ tm.Tile.Title }</h2>
+					<p>{ tm.Tile.Description }</p>
 					<div class="card-actions justify-end">
 						<button class="btn btn-primary">Listen</button>
 					</div>
 				} else {
-					@editTile(isManagement, tile)
+					@editTile(isManagement, tm.Tile)
 				}
 			</div>
 		</div>
-		if !isManagement && tile.Stats(loginId).State != services.ACCEPTED {
+		if !isManagement && tm.Stats(loginId).State != db.SubmissionstateAccepted {
 			<div class="divider"></div>
-			@components.SubmissionForm(isManagement, tile.Id)
+			@components.SubmissionForm(isManagement, tm.Tile.ID)
 		}
 		<div class="divider"></div>
-		<div hx-get={ fmt.Sprintf("/tiles/%d/submissions", tile.Id) } hx-swap="outerHTML" hx-trigger="load"></div>
+		<div hx-get={ fmt.Sprintf("/tiles/%d/submissions", tm.Tile.ID) } hx-swap="outerHTML" hx-trigger="load"></div>
 	</section>
 }
 
-templ editTile(isManagement bool, tile services.Tile) {
+templ editTile(isManagement bool, tile db.Tile) {
 	<div class="card-actions justify-end">
 		<form
 			hx-swap="transition:true"

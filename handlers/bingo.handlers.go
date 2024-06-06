@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,7 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/kaffeed/bingoscape/db"
 	"github.com/kaffeed/bingoscape/services"
+	"github.com/kaffeed/bingoscape/views"
 	authviews "github.com/kaffeed/bingoscape/views/auth"
 	components "github.com/kaffeed/bingoscape/views/components"
 	"github.com/labstack/echo/v4"
@@ -65,7 +69,12 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 	if err != nil {
 		return fmt.Errorf("Could not get possible participants! %w", err)
 	}
-	participantTable := components.BingoTeams(isManagement, bingo, p, pp)
+	participantTable := components.BingoTeams(isManagement, views.BingoDetailModel{
+		Bingo:                bingo,
+		Tiles:                []views.TileModel{},
+		PossibleParticipants: pp,
+		Participants:         p,
+	})
 
 	return render(c, participantTable)
 }
@@ -82,7 +91,7 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 	}
 
 	tzone, _ := c.Get(tzone_key).(string)
-	loc, err := time.LoadLocation(tzone)
+	_, err := time.LoadLocation(tzone)
 	if err != nil {
 		setFlashmessages(c, "error", "Could not load timezone information!")
 
@@ -93,26 +102,35 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "POST" {
-		bingo := services.Bingo{}
+		bingo := db.CreateBingoParams{}
 
+		var validFrom, validTo time.Time
 		err := echo.FormFieldBinder(c).
 			String("title", &bingo.Title).
-			Int("rows", &bingo.Rows).
-			Int("cols", &bingo.Cols).
-			Time("validfrom", &bingo.From, ISO8601).
-			Time("validto", &bingo.To, ISO8601).
+			Int32("rows", &bingo.Rows).
+			Int32("cols", &bingo.Cols).
+			Time("validfrom", &validFrom, ISO8601).
+			Time("validto", &validTo, ISO8601).
 			String("description", &bingo.Description).
-			String("codephrase", &bingo.CodePhrase).
+			String("codephrase", &bingo.Codephrase).
 			BindError()
 
-		bingo.From = bingo.From.In(loc)
-		bingo.To = bingo.To.In(loc)
+		bingo.Validfrom = pgtype.Timestamp{
+			Time:             validFrom,
+			InfinityModifier: 0,
+			Valid:            true,
+		}
 
+		bingo.Validto = pgtype.Timestamp{
+			Time:             validTo,
+			InfinityModifier: 0,
+			Valid:            true,
+		}
 		if err != nil {
 			return err
 		}
 
-		bingo, err = bh.BingoService.CreateBingo(bingo)
+		viewModel, err := bh.BingoService.CreateBingo(bingo)
 		if err != nil {
 
 			setFlashmessages(c, "error", fmt.Sprintf(
@@ -130,7 +148,7 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 
 		setFlashmessages(c, "success", "Created a new bingo!")
 
-		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", bingo.Id))
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", viewModel.Bingo.ID))
 	}
 
 	return render(c, authviews.RegisterIndex(
@@ -157,7 +175,7 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	var bingoId int
 	echo.PathParamsBinder(c).Int("bingoId", &bingoId)
 
-	err := bh.BingoService.DeleteBingo(bingoId)
+	err := bh.BingoService.Store.DeleteBingoById(context.Background(), int32(bingoId))
 	if err != nil {
 		return err
 	}
@@ -180,7 +198,9 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		return c.Redirect(http.StatusUnauthorized, c.Path())
 	}
 
-	var submissionId, parsedState int
+	var submissionId int
+	var parsedState string
+
 	var comments []string
 	echo.FormFieldBinder(c).
 		Strings("comment", &comments) // FIXME: Why the fuck is that multiple strings
@@ -188,16 +208,19 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 
 	err := echo.PathParamsBinder(c).
 		Int("submissionId", &submissionId).
-		Int("state", &parsedState).
+		String("state", &parsedState).
 		BindError()
 
 	if err != nil {
 		return err
 	}
 
-	state := services.State(parsedState)
+	state := db.Submissionstate(parsedState)
 
-	s, err := bh.BingoService.UpdateSubmissionState(submissionId, state)
+	s, err := bh.BingoService.Store.UpdateSubmissionState(context.Background(), db.UpdateSubmissionStateParams{
+		ID:    int32(submissionId),
+		State: state,
+	})
 
 	if err != nil {
 		c.Set("ISERROR", true)
@@ -206,26 +229,44 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 	}
 
 	if comment != "" {
-		uid, ok := c.Get(user_id_key).(int)
+		uid, ok := c.Get(user_id_key).(int32)
 
 		if ok {
-			err = bh.BingoService.CreateSubmissionComment(submissionId, uid, comment)
+			err = bh.BingoService.Store.CreateSubmissionComment(context.Background(), db.CreateSubmissionCommentParams{
+				SubmissionID: int32(submissionId),
+				LoginID:      int32(uid),
+				Comment:      comment,
+			})
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	s.LoadComments(bh.BingoService.Store.Db)
+	sc, err := bh.BingoService.Store.GetCommentsForSubmission(context.Background(), s.ID)
 	if err != nil {
 		c.Set("ISERROR", true)
 		setFlashmessages(c, "error", "Could not update submission state")
 		return err
 	}
+
+	ip, err := bh.BingoService.Store.GetImagesForSubmission(context.Background(), s.ID)
+	if err != nil {
+		c.Set("ISERROR", true)
+		setFlashmessages(c, "error", "Could not update submission state")
+		return err
+	}
+
 	c.Set("ISERROR", false)
 	loc := getLocation(c)
 
-	return render(c, components.SubmissionHeader(isManagement, s, loc))
+	data := views.SubmissionData{
+		Submission: s,
+		Comments:   sc,
+		Images:     ip,
+	}
+
+	return render(c, components.SubmissionHeader(isManagement, data, loc))
 }
 
 func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
@@ -281,7 +322,7 @@ func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
 			filePaths = append(filePaths, staticPath(dst.Name()))
 		}
 
-		u := c.Get(user_id_key).(int)
+		u := c.Get(user_id_key).(int32)
 		err = bh.BingoService.CreateSubmission(tileId, u, filePaths)
 
 		if err != nil {
@@ -295,10 +336,10 @@ func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
 
 		setFlashmessages(c, "success", "Submission successful!")
 
-		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.Id))
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.ID))
 	}
 
-	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.Id))
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.ID))
 }
 
 func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
@@ -316,15 +357,15 @@ func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
 		isManagement = false
 	}
 
-	uid := c.Get(user_id_key).(int)
+	uid := c.Get(user_id_key).(int32)
 
-	var tileId int
-	err := echo.PathParamsBinder(c).Int("tileId", &tileId).BindError()
+	var tileId int32
+	err := echo.PathParamsBinder(c).Int32("tileId", &tileId).BindError()
 	if err != nil {
 		return fmt.Errorf("Need valid tile id: %w", err)
 	}
 
-	var submissionMap map[string][]services.Submission
+	var submissionMap views.Submissions
 	if isManagement {
 		submissionMap, err = bh.BingoService.LoadAllSubmissionsForTile(tileId)
 	} else {
@@ -386,18 +427,21 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 			return err
 		}
 
-		t := services.Tile{ // TODO: Read from config
-			Id:          tileId,
+		t := db.UpdateTileParams{ // TODO: Read from config
+			ID:          int32(tileId),
 			Title:       c.FormValue("title"),
 			Description: c.FormValue("description"),
-			ImagePath:   staticPath(dst.Name()),
-			BingoId:     tile.BingoId,
+			Imagepath:   staticPath(dst.Name()),
 		}
 
-		err = bh.BingoService.UpdateTile(t)
+		_, err = bh.BingoService.Store.UpdateTile(context.Background(), t)
 
 		if c.FormValue("saveAsTemplate") == "on" {
-			bh.BingoService.CreateTemplateTile(t)
+			_, _ = bh.BingoService.Store.CreateTemplateTile(context.Background(), db.CreateTemplateTileParams{
+				Title:       t.Title,
+				Imagepath:   t.Imagepath,
+				Description: t.Description,
+			})
 		}
 
 		if err != nil {
@@ -411,15 +455,26 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 		setFlashmessages(c, "success", "Created a new bingo!")
 
-		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", t.BingoId))
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", tile.BingoID))
 	}
 
-	uid := c.Get(user_id_key).(int)
-	editTileView := authviews.Tile(isManagement, tile, uid)
+	uid := c.Get(user_id_key).(int32)
+	var submissions views.Submissions
+	if isManagement {
+		submissions, err = bh.BingoService.LoadAllSubmissionsForTile(tile.ID)
+	} else {
+		submissions, err = bh.BingoService.LoadUserSubmissions(tile.ID, uid)
+	}
+
+	tm := views.TileModel{
+		Tile:        tile,
+		Submissions: submissions,
+	}
+	editTileView := authviews.Tile(isManagement, tm, uid)
 
 	return render(c, authviews.TileIndex(
 		"| Tile",
-		"",
+		"", // TODO: set someday
 		isAuthenticated,
 		isManagement,
 		c.Get("ISERROR").(bool),
@@ -448,9 +503,9 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "POST" {
-		user := services.User{
+		user := db.CreateLoginParams{
 			Password:     c.FormValue("password"),
-			Username:     c.FormValue("username"),
+			Name:         c.FormValue("username"),
 			IsManagement: c.FormValue("IsManagement") == "on",
 		}
 
@@ -509,7 +564,7 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 	if !ok {
 		isManagement = false
 	}
-	u := c.Get(user_id_key).(int)
+	u := c.Get(user_id_key).(int32)
 	loc := getLocation(c)
 	bingos, _ := bh.BingoService.GetBingos(isManagement, u)
 	bingoTable := components.BingoTable(isManagement, bingos, loc)
@@ -563,7 +618,12 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 		return err
 	}
 
-	bingoView := components.BingoTeams(isManagement, bingo, p, possible)
+	bingoView := components.BingoTeams(isManagement, views.BingoDetailModel{
+		Bingo:                bingo,
+		Tiles:                []views.TileModel{},
+		PossibleParticipants: possible,
+		Participants:         p,
+	})
 	return render(c, bingoView)
 }
 
@@ -610,7 +670,12 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 		return fmt.Errorf("Could not get possible participants! %w", err)
 	}
 
-	return render(c, components.BingoTeams(isManagement, bingo, p, pp))
+	return render(c, components.BingoTeams(isManagement, views.BingoDetailModel{
+		Bingo:                bingo,
+		Tiles:                []views.TileModel{},
+		PossibleParticipants: pp,
+		Participants:         p,
+	}))
 }
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
@@ -639,9 +704,17 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		return err
 	}
 
-	uid := c.Get(user_id_key).(int)
+	tiles, err := bh.BingoService.LoadTilesForBingo(bingoId)
 
-	bingoView := authviews.BingoDetail(isManagement, bingo, p, possible, uid)
+	uid := c.Get(user_id_key).(int32)
+	bm := views.BingoDetailModel{
+		Bingo:                bingo,
+		Tiles:                tiles,
+		PossibleParticipants: possible,
+		Participants:         p,
+	}
+
+	bingoView := authviews.BingoDetail(isManagement, bm, uid)
 	c.Set("ISERROR", false)
 
 	return render(c, authviews.BingoDetailIndex(

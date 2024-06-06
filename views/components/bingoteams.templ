@@ -1,16 +1,16 @@
 package components
 
-import "github.com/kaffeed/bingoscape/services"
 import "fmt"
+import "github.com/kaffeed/bingoscape/views"
 
-templ BingoTeams(isManagement bool, bingo services.Bingo, participants services.Participants, possible services.Participants) {
+templ BingoTeams(isManagement bool, bingo views.BingoDetailModel) {
 	<div class="overflow-x-auto" id="bingoTeamsView">
-		@ParticipantsTable(isManagement, bingo, participants)
+		@ParticipantsTable(isManagement, bingo)
 		if isManagement {
 			<div class="divider"></div>
 			<footer class="card-actions justify-end">
 				<select
-					hx-post={ fmt.Sprintf("/bingos/%d/participants", bingo.Id) }
+					hx-post={ fmt.Sprintf("/bingos/%d/participants", bingo.ID) }
 					hx-target="#bingoTeamsView"
 					hx-trigger="change"
 					hx-swap="outerHTML"
@@ -18,8 +18,8 @@ templ BingoTeams(isManagement bool, bingo services.Bingo, participants services.
 					class="select select-bordered w-full max-w-xs"
 				>
 					<option disabled selected>Add a team</option>
-					for _, p := range possible {
-						<option value={ fmt.Sprintf("%d", p.Id) }>{ p.Name }</option>
+					for _, p := range bingo.PossibleParticipants {
+						<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
 					}
 				</select>
 			</footer>
@@ -27,8 +27,8 @@ templ BingoTeams(isManagement bool, bingo services.Bingo, participants services.
 	</div>
 }
 
-templ ParticipantsTable(isManagement bool, b services.Bingo, participants services.Participants) {
-	if len(participants) == 0 {
+templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
+	if len(b.Participants) == 0 {
 		<p class="py-6">Pretty empty here, huh? Try assigning a team :)</p>
 	} else {
 		<table class="table" id="bingoTable">
@@ -41,7 +41,7 @@ templ ParticipantsTable(isManagement bool, b services.Bingo, participants servic
 				</tr>
 			</thead>
 			<tbody id="participants" class="justify-end">
-				for _, p := range participants {
+				for _, p := range b.Participants {
 					<tr>
 						<td>
 							{ p.Name }
@@ -50,7 +50,7 @@ templ ParticipantsTable(isManagement bool, b services.Bingo, participants servic
 							<td>
 								<button
 									hx-confirm="Are you sure you want to remove this participant?"
-									hx-delete={ fmt.Sprintf("/bingos/%d/participants/%d", b.Id, p.Id) }
+									hx-delete={ fmt.Sprintf("/bingos/%d/participants/%d", b.ID, p.ID) }
 									hx-target="#bingoTeamsView"
 									hx-swap="outerHTML"
 									class="btn btn-ghost text-lg float-right"

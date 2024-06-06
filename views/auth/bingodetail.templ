@@ -1,11 +1,11 @@
 package auth
 
 import "github.com/kaffeed/bingoscape/views/layout"
-import "github.com/kaffeed/bingoscape/services"
 import "fmt"
 import "github.com/kaffeed/bingoscape/views/components"
+import "github.com/kaffeed/bingoscape/views"
 
-templ BingoDetail(isManagement bool, bingo services.Bingo, participants services.Participants, possibleParticipants services.Participants, loginId int) {
+templ BingoDetail(isManagement bool, bingo views.BingoDetailModel, loginId int32) {
 	<div class="flex flex-col w-full">
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
 			<div class="hero min-w-screen bg-base-200">
@@ -32,21 +32,21 @@ templ BingoDetail(isManagement bool, bingo services.Bingo, participants services
 		</section>
 		<div class="divider"></div>
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
-			@components.BingoTeams(isManagement, bingo, participants, possibleParticipants)
+			@components.BingoTeams(isManagement, bingo)
 		</section>
 		<div class="divider"></div>
 	</div>
 }
 
-templ tileView(isManagement bool, t services.Tile, loginId int) {
+templ tileView(isManagement bool, t views.TileModel, loginId int32) {
 	<div
-		hx-get={ fmt.Sprintf("/tiles/%d", t.Id) }
+		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
 		class="cursor-pointer relative "
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
 	>
-		<img src={ t.ImagePath } class="grid-item" alt="Shoes"/>
+		<img src={ t.Imagepath } class="grid-item" alt="Shoes"/>
 		if isManagement {
 			if t.Stats(loginId).HasSubmissions {
 				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
@@ -55,7 +55,7 @@ templ tileView(isManagement bool, t services.Tile, loginId int) {
 				</div>
 			}
 		} else {
-			if t.Stats(loginId).State != -1 {
+			if t.Stats(loginId).State != "" {
 				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
 				<div class="absolute inset-0 flex items-center justify-center">
 					@stats(isManagement, t.Stats(loginId))
@@ -65,7 +65,7 @@ templ tileView(isManagement bool, t services.Tile, loginId int) {
 	</div>
 }
 
-templ stats(isManagement bool, s services.TileStats) {
+templ stats(isManagement bool, s views.TileStats) {
 	if isManagement {
 		<div class="tooltip text-lg" data-tip="Submitted">
 			<div class="badge badge-info gap-2">

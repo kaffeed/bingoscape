@@ -4,11 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/kaffeed/bingoscape/db"
-	"github.com/kaffeed/bingoscape/services"
 	"github.com/spf13/cobra"
 )
 
@@ -20,21 +15,21 @@ var addCmd = &cobra.Command{
 to quickly create a Cobra application.`,
 	ValidArgs: []string{"name", "password"},
 	Run: func(cmd *cobra.Command, args []string) {
-
-		store, err := db.NewStore(os.Getenv("DB"))
-		if err != nil {
-			fmt.Printf("%v", err)
-			return
-		}
-
-		us := services.NewUserServices(store)
-		us.CreateUser(services.User{
-			Username:     "",
-			Password:     "",
-			IsManagement: true,
-		})
-
-		fmt.Println(services.User{})
+		//
+		// store, err := db.NewStore(os.Getenv("DB"))
+		// if err != nil {
+		// 	fmt.Printf("%v", err)
+		// 	return
+		// }
+		//
+		// us := services.NewUserServices(store)
+		// us.CreateUser(db.CreateLoginParams{
+		// 	Name:         "",
+		// 	Password:     "",
+		// 	IsManagement: true,
+		// })
+		//
+		// fmt.Println(services.User{})
 	},
 }
 
