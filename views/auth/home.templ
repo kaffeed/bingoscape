@@ -22,6 +22,7 @@ templ Home(isAuthenticated bool) {
 			</footer>
 		} else {
 			<div hx-get="/bingos/list" hx-trigger="load, every 2s" hx-swap="outerHTML"></div>
+			<img id="spinner" class="htmx-indicator fa-solid fa-spinner" src="/img/bars.svg"/>
 		}
 	</section>
 }

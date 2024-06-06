@@ -8,14 +8,24 @@ import "github.com/kaffeed/bingoscape/views"
 templ BingoDetail(isManagement bool, bingo views.BingoDetailModel, loginId int32) {
 	<div class="flex flex-col w-full">
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
-			<div class="hero min-w-screen bg-base-200">
+			<div class="hero min-w-screen bg-base-200 py-12 px-4">
 				<div class="hero-content text-center">
-					<div class="max-w-md">
-						<h1 class="text-5xl font-bold">{ bingo.Title }</h1>
-						<h1 class="text-2xl font-bold">{ bingo.Title }</h1>
-						<p class="py-6">{ bingo.Title }</p>
+					<div class="max-w-md mx-auto">
+						<h1 class="text-5xl font-bold leading-tight">{ bingo.Title }</h1>
+						<p class="py-4 text-4xl md:text-2xl font-bold flex items-center">
+							<span class="mr-2">Codephrase:</span>
+							<span class="badge badge-primary">"{ bingo.Codephrase }"</span>
+						</p>
+						<p class="py-6 text-lg md:text-xl">{ bingo.Description }</p>
+						<p class="py-2 text-sm md:text-md">Valid from: { bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") } to { bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
+						<p class="py-2 text-sm md:text-md">Grid Size: { fmt.Sprintf("%d", bingo.Rows) } x { fmt.Sprintf("%d", bingo.Cols) }</p>
+						<div class="mt-6">
+							<a href="#get-started" class="btn btn-primary">Get Started</a>
+						</div>
 						if isManagement {
-							<button class="btn btn-info">Set as ready</button>
+							<div class="mt-4">
+								<button class="btn btn-info">Set as ready</button>
+							</div>
 						}
 					</div>
 				</div>
