@@ -21,6 +21,7 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	tileGroup.GET("/:tileId", bingoHandlers.handleTile)
 	tileGroup.PUT("/:tileId", bingoHandlers.handleTile)
 	tileGroup.POST("/:tileId/submit", bingoHandlers.handleTileSubmission)
+	tileGroup.GET("/:tileId/templates", bingoHandlers.handleLoadFromTemplate)
 	tileGroup.GET("/:tileId/submissions", bingoHandlers.handleGetTileSubmissions)
 	tileGroup.PUT("/submissions/:submissionId/:state", bingoHandlers.handlePutSubmissionStatus)
 

@@ -54,6 +54,9 @@ INSERT INTO submission_images(path, submission_id) VALUES ($1, $2);
 -- name: CreateTemplateTile :one
 INSERT INTO template_tiles(title, imagepath, description) VALUES ($1, $2, $3) returning *;
 
+-- name: GetTemplateTiles :many
+SELECT * FROM template_tiles;
+
 -- name: GetPossibleBingoParticipants :many
 SELECT l.id, l.name FROM public.logins l
 	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = $1)

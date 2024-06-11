@@ -50,6 +50,7 @@ func main() {
 	imageGroup := e.Group("/img")
 	imageGroup.Use(middleware.Static(p))
 
+	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))

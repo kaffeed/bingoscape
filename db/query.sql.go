@@ -599,6 +599,35 @@ func (q *Queries) GetSubmissionsForTileAndLogin(ctx context.Context, arg GetSubm
 	return items, nil
 }
 
+const getTemplateTiles = `-- name: GetTemplateTiles :many
+SELECT id, title, imagepath, description FROM template_tiles
+`
+
+func (q *Queries) GetTemplateTiles(ctx context.Context) ([]TemplateTile, error) {
+	rows, err := q.db.Query(ctx, getTemplateTiles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TemplateTile
+	for rows.Next() {
+		var i TemplateTile
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Imagepath,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTileById = `-- name: GetTileById :one
 SELECT id, title, imagepath, description, bingo_id FROM tiles WHERE id = $1
 `

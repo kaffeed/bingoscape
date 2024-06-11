@@ -21,6 +21,7 @@ type BingoDetailModel struct {
 type TileModel struct {
 	db.Tile
 	Submissions Submissions
+	Templates   []db.TemplateTile
 }
 
 type TileStats struct {

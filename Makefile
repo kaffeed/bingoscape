@@ -37,6 +37,12 @@ build-api: test
 docker-build: test
 	GOPROXY=direct docker buildx build -t ${name} .
 
+
+## build-release: build a binary
+.PHONY: build-release
+build-release: test css templ
+	go build  -o ./tmp/main -v ./cmd/api
+
 ## docker-run: run project in a container
 .PHONY: docker-run
 docker-run:

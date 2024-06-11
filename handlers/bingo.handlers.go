@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -77,6 +78,96 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 	})
 
 	return render(c, participantTable)
+}
+
+func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Need to be authenticated")
+	}
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
+	}
+
+	if !isManagement {
+		return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Need to be management for this")
+	}
+
+	var tileId int32
+
+	err := echo.
+		PathParamsBinder(c).
+		Int32("tileId", &tileId).
+		BindError()
+
+	if err != nil {
+		return fmt.Errorf("Need valid tile id: %w", err)
+	}
+
+	var templateId int32
+	err = echo.QueryParamsBinder(c).Int32("templateId", &templateId).BindError()
+
+	if err != nil {
+		return fmt.Errorf("Need valid template id: %w", err)
+	}
+
+	log.Printf("####################################################################################################")
+	log.Printf("can load queryparams")
+	log.Printf("####################################################################################################")
+
+	tile, err := bh.BingoService.LoadTile(int(tileId))
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Tile: %#v", tile)
+
+	uid, ok := c.Get(user_id_key).(int32)
+	var templates []db.TemplateTile
+	var submissions views.Submissions
+
+	if isManagement {
+		submissions, err = bh.BingoService.LoadAllSubmissionsForTile(tile.ID)
+		templates, err = bh.BingoService.Store.GetTemplateTiles(context.Background())
+	} else {
+		submissions, err = bh.BingoService.LoadUserSubmissions(tile.ID, uid)
+	}
+	templates, err = bh.BingoService.Store.GetTemplateTiles(context.Background())
+	if err != nil {
+		return err
+	}
+
+	log.Printf("####################################################################################################")
+	log.Printf("can load templates")
+	log.Printf("####################################################################################################")
+
+	idx := slices.IndexFunc(templates, func(myTempl db.TemplateTile) bool {
+		return myTempl.ID == templateId
+	})
+
+	if idx != -1 {
+		templateTile := templates[idx]
+		tile.Title = templateTile.Title
+		tile.Description = templateTile.Description
+		tile.Imagepath = templateTile.Imagepath
+
+		log.Printf("####################################################################################################")
+		log.Printf("Could update from template")
+		log.Printf("####################################################################################################")
+	}
+
+	tm := views.TileModel{
+		Tile:        tile,
+		Templates:   templates,
+		Submissions: submissions,
+	}
+
+	editForm := authviews.Tile(isManagement, tm, uid)
+	return render(c, editForm) // TODO: Change to tileEditForm
 }
 
 func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
@@ -403,35 +494,40 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 	if c.Request().Method == "PUT" {
 		file, err := c.FormFile("file")
-		if err != nil {
-			return err
-		}
-		src, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer src.Close()
 
-		// Destination
+		var f string
 
-		p := filepath.Join(os.Getenv("IMAGE_PATH"), "tiles")
-		dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+		if err == nil {
+			src, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer src.Close()
 
-		if err != nil {
-			return err
-		}
-		defer dst.Close()
+			// Destination
 
-		// Copy
-		if _, err = io.Copy(dst, src); err != nil {
-			return err
+			p := filepath.Join(os.Getenv("IMAGE_PATH"), "tiles")
+			dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
+
+			if err != nil {
+				return err
+			}
+			defer dst.Close()
+
+			// Copy
+			if _, err = io.Copy(dst, src); err != nil {
+				return err
+			}
+			f = staticPath(dst.Name())
+		} else {
+			f = "https://i.ibb.co/7N9Pjcs/image.png"
 		}
 
 		t := db.UpdateTileParams{ // TODO: Read from config
 			ID:          int32(tileId),
 			Title:       c.FormValue("title"),
 			Description: c.FormValue("description"),
-			Imagepath:   staticPath(dst.Name()),
+			Imagepath:   f,
 		}
 
 		_, err = bh.BingoService.Store.UpdateTile(context.Background(), t)
@@ -460,8 +556,11 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 	uid := c.Get(user_id_key).(int32)
 	var submissions views.Submissions
+	var templates []db.TemplateTile
+
 	if isManagement {
 		submissions, err = bh.BingoService.LoadAllSubmissionsForTile(tile.ID)
+		templates, err = bh.BingoService.Store.GetTemplateTiles(context.Background())
 	} else {
 		submissions, err = bh.BingoService.LoadUserSubmissions(tile.ID, uid)
 	}
@@ -469,7 +568,9 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	tm := views.TileModel{
 		Tile:        tile,
 		Submissions: submissions,
+		Templates:   templates,
 	}
+
 	editTileView := authviews.Tile(isManagement, tm, uid)
 
 	return render(c, authviews.TileIndex(
