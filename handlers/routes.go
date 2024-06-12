@@ -12,10 +12,10 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 
 	teamGroup := e.Group("/logins", authHandlers.authMiddleware)
 	teamGroup.GET("", authHandlers.handleUsermanagement)
-	teamGroup.GET("/create", bingoHandlers.CreateLoginHandler)
-	teamGroup.POST("/create", bingoHandlers.CreateLoginHandler)
+	teamGroup.GET("/create", bingoHandlers.handleCreateLogin)
+	teamGroup.POST("/create", bingoHandlers.handleCreateLogin)
 	teamGroup.GET("/list", authHandlers.handleLoginTable)
-	// teamGroup.DELETE("/:id", bingoHandlers.handleDeleteLogins)
+	teamGroup.DELETE("/:userId", bingoHandlers.handleDeleteLogin)
 
 	tileGroup := e.Group("/tiles", authHandlers.authMiddleware)
 	tileGroup.GET("/:tileId", bingoHandlers.handleTile)

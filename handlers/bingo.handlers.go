@@ -576,7 +576,33 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	))
 }
 
-func (bh *BingoHandler) CreateLoginHandler(c echo.Context) error {
+func (bh *BingoHandler) handleDeleteLogin(c echo.Context) error {
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return c.Redirect(http.StatusUnauthorized, c.Request().URL.RequestURI()) // FIXME: is this the right way?
+	}
+
+	var userId int32
+	err := echo.PathParamsBinder(c).Int32("userId", &userId).BindError()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = bh.UserService.DeleteUser(userId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/logins")
+}
+
+func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
