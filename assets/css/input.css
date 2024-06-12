@@ -39,6 +39,12 @@
     }
 }
 
+@font-face {
+  font-family: 'runescape';
+  src: url('/fonts/runescape.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 @keyframes fade-in {
     from {

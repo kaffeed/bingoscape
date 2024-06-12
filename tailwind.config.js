@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['runescape'],
+        custom: ['runescape', 'sans-serif']
       }
     },
   },

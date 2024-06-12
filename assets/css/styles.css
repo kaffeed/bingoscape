@@ -135,7 +135,7 @@ code,
 kbd,
 samp,
 pre {
-  font-family: runescape;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   /* 1 */
   font-feature-settings: normal;
   /* 2 */
@@ -4097,6 +4097,16 @@ details.collapse summary::-webkit-details-marker {
 .drop-shadow-xl {
   --tw-drop-shadow: drop-shadow(0 20px 13px rgb(0 0 0 / 0.03)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.08));
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
+@font-face {
+  font-family: 'runescape';
+
+  src: url('/fonts/runescape.ttf') format('truetype');
+
+  font-weight: normal;
+
+  font-style: normal;
 }
 
 @keyframes fade-in {
