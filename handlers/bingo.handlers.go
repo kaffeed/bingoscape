@@ -243,8 +243,8 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", viewModel.Bingo.ID))
 	}
 
-	return render(c, authviews.RegisterIndex(
-		"| Register",
+	return render(c, authviews.CreateUserIndex( // FIXME: Hmm... Really CreateUserIndex?
+		"| Create Login",
 		"",
 		isAuthenticated,
 		isManagement,
@@ -576,7 +576,7 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	))
 }
 
-func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
+func (bh *BingoHandler) CreateLoginHandler(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
@@ -586,7 +586,7 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 	if !ok {
 		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
 	}
-	registerView := authviews.Register(isManagement)
+	registerView := authviews.CreateUser(isManagement)
 	// isError = false
 	c.Set("ISERROR", false)
 
@@ -594,13 +594,13 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 		user := db.CreateLoginParams{
 			Password:     c.FormValue("password"),
 			Name:         c.FormValue("username"),
-			IsManagement: c.FormValue("IsManagement") == "on",
+			IsManagement: c.FormValue("management") == "on",
 		}
 
 		err := bh.UserService.CreateUser(user)
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-				err = errors.New("the name is already in use")
+				err = errors.New("the username is already in use")
 				setFlashmessages(c, "error", fmt.Sprintf(
 					"something went wrong: %s",
 					err,
@@ -622,8 +622,8 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/")
 	}
 
-	return render(c, authviews.RegisterIndex(
-		"| Register",
+	return render(c, authviews.CreateUserIndex(
+		"| Create User",
 		"",
 		isAuthenticated,
 		isManagement,

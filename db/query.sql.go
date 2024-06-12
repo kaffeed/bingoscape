@@ -688,6 +688,15 @@ func (q *Queries) GetTilesForBingo(ctx context.Context, bingoID int32) ([]Tile, 
 	return items, nil
 }
 
+const makeUserManagement = `-- name: MakeUserManagement :exec
+UPDATE logins SET is_management = true WHERE id = $1
+`
+
+func (q *Queries) MakeUserManagement(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, makeUserManagement, id)
+	return err
+}
+
 const toggleBingoState = `-- name: ToggleBingoState :one
 UPDATE bingos SET active = NOT active WHERE id = $1 returning active
 `

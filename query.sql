@@ -13,6 +13,9 @@ DELETE FROM logins WHERE id = $1;
 -- name: UpdateLoginPassword :one
 UPDATE logins SET password = $2 WHERE id = $1 returning *;
 
+-- name: MakeUserManagement :exec
+UPDATE logins SET is_management = true WHERE id = $1;
+
 -- name: CreateSubmissionComment :exec
 INSERT INTO public.submission_comments (submission_id, login_id, comment) values ($1, $2, $3);
 

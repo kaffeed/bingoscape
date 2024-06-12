@@ -12,8 +12,8 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 
 	teamGroup := e.Group("/logins", authHandlers.authMiddleware)
 	teamGroup.GET("", authHandlers.handleUsermanagement)
-	teamGroup.GET("/create", bingoHandlers.RegisterHandler)
-	teamGroup.POST("/create", bingoHandlers.RegisterHandler)
+	teamGroup.GET("/create", bingoHandlers.CreateLoginHandler)
+	teamGroup.POST("/create", bingoHandlers.CreateLoginHandler)
 	teamGroup.GET("/list", authHandlers.handleLoginTable)
 	// teamGroup.DELETE("/:id", bingoHandlers.handleDeleteLogins)
 

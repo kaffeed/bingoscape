@@ -2,7 +2,7 @@ package auth
 
 import "github.com/kaffeed/bingoscape/views/layout"
 
-templ Register(isManagement bool) {
+templ CreateUser(isManagement bool) {
 	<section class="card w-fit bg-base-200 shadow-xl mx-auto mb-8">
 		<div class="card-body pb-2">
 			<h1 class="card-title border-b border-b-slate-600 pb-[4px]">
@@ -83,7 +83,7 @@ templ Register(isManagement bool) {
 				<label class="flex flex-col justify-start gap-2">
 					Management:
 					<input
-						name="isManagement"
+						name="management"
 						type="checkbox"
 						class="checkbox checkbox-primary"
 						disabled?={ !isManagement }
@@ -102,7 +102,7 @@ templ Register(isManagement bool) {
 	</section>
 }
 
-templ RegisterIndex(title, username string, isAuthenticated, isManagement bool, isError bool, errMsgs, sucMsgs []string, cmp templ.Component) {
+templ CreateUserIndex(title, username string, isAuthenticated, isManagement bool, isError bool, errMsgs, sucMsgs []string, cmp templ.Component) {
 	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
 		@cmp
 	}
