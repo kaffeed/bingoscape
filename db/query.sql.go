@@ -12,7 +12,7 @@ import (
 )
 
 const createBingo = `-- name: CreateBingo :one
-INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, ready, codephrase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, title, validfrom, validto, rows, cols, description, codephrase, ready
+INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, active, codephrase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, title, validfrom, validto, rows, cols, description, codephrase, active
 `
 
 type CreateBingoParams struct {
@@ -22,7 +22,7 @@ type CreateBingoParams struct {
 	Rows        int32
 	Cols        int32
 	Description string
-	Ready       bool
+	Active      bool
 	Codephrase  string
 }
 
@@ -34,7 +34,7 @@ func (q *Queries) CreateBingo(ctx context.Context, arg CreateBingoParams) (Bingo
 		arg.Rows,
 		arg.Cols,
 		arg.Description,
-		arg.Ready,
+		arg.Active,
 		arg.Codephrase,
 	)
 	var i Bingo
@@ -47,7 +47,7 @@ func (q *Queries) CreateBingo(ctx context.Context, arg CreateBingoParams) (Bingo
 		&i.Cols,
 		&i.Description,
 		&i.Codephrase,
-		&i.Ready,
+		&i.Active,
 	)
 	return i, err
 }
@@ -246,7 +246,7 @@ func (q *Queries) GetAllLogins(ctx context.Context) ([]Login, error) {
 }
 
 const getBingoById = `-- name: GetBingoById :one
-SELECT id, title, validfrom, validto, rows, cols, description, codephrase, ready FROM bingos WHERE id = $1
+SELECT id, title, validfrom, validto, rows, cols, description, codephrase, active FROM bingos WHERE id = $1
 `
 
 func (q *Queries) GetBingoById(ctx context.Context, id int32) (Bingo, error) {
@@ -261,7 +261,7 @@ func (q *Queries) GetBingoById(ctx context.Context, id int32) (Bingo, error) {
 		&i.Cols,
 		&i.Description,
 		&i.Codephrase,
-		&i.Ready,
+		&i.Active,
 	)
 	return i, err
 }
@@ -298,7 +298,7 @@ func (q *Queries) GetBingoParticipants(ctx context.Context, bingoID int32) ([]Ge
 }
 
 const getBingos = `-- name: GetBingos :many
-SELECT id, title, validfrom, validto, rows, cols, description, codephrase, ready FROM bingos
+SELECT id, title, validfrom, validto, rows, cols, description, codephrase, active FROM bingos
 `
 
 func (q *Queries) GetBingos(ctx context.Context) ([]Bingo, error) {
@@ -319,7 +319,7 @@ func (q *Queries) GetBingos(ctx context.Context) ([]Bingo, error) {
 			&i.Cols,
 			&i.Description,
 			&i.Codephrase,
-			&i.Ready,
+			&i.Active,
 		); err != nil {
 			return nil, err
 		}
@@ -332,10 +332,10 @@ func (q *Queries) GetBingos(ctx context.Context) ([]Bingo, error) {
 }
 
 const getBingosForLogin = `-- name: GetBingosForLogin :many
-SELECT b.id, b.title, b.validfrom, b.validto, b.rows, b.cols, b.description, b.codephrase, b.ready FROM bingos b
+SELECT b.id, b.title, b.validfrom, b.validto, b.rows, b.cols, b.description, b.codephrase, b.active FROM bingos b
 JOIN bingos_logins bl ON b.id = bl.bingo_id
 JOIN logins l ON bl.login_id = l.id
-WHERE l.id = $1
+WHERE l.id = $1 and b.active
 `
 
 func (q *Queries) GetBingosForLogin(ctx context.Context, id int32) ([]Bingo, error) {
@@ -356,7 +356,7 @@ func (q *Queries) GetBingosForLogin(ctx context.Context, id int32) ([]Bingo, err
 			&i.Cols,
 			&i.Description,
 			&i.Codephrase,
-			&i.Ready,
+			&i.Active,
 		); err != nil {
 			return nil, err
 		}
@@ -599,6 +599,17 @@ func (q *Queries) GetSubmissionsForTileAndLogin(ctx context.Context, arg GetSubm
 	return items, nil
 }
 
+const getTemplateImagePath = `-- name: GetTemplateImagePath :one
+SELECT imagepath from template_tiles where id = $1
+`
+
+func (q *Queries) GetTemplateImagePath(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getTemplateImagePath, id)
+	var imagepath string
+	err := row.Scan(&imagepath)
+	return imagepath, err
+}
+
 const getTemplateTiles = `-- name: GetTemplateTiles :many
 SELECT id, title, imagepath, description FROM template_tiles
 `
@@ -675,6 +686,17 @@ func (q *Queries) GetTilesForBingo(ctx context.Context, bingoID int32) ([]Tile, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const toggleBingoState = `-- name: ToggleBingoState :one
+UPDATE bingos SET active = NOT active WHERE id = $1 returning active
+`
+
+func (q *Queries) ToggleBingoState(ctx context.Context, id int32) (bool, error) {
+	row := q.db.QueryRow(ctx, toggleBingoState, id)
+	var active bool
+	err := row.Scan(&active)
+	return active, err
 }
 
 const updateLoginPassword = `-- name: UpdateLoginPassword :one

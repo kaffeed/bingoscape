@@ -63,7 +63,7 @@ type Bingo struct {
 	Cols        int32
 	Description string
 	Codephrase  string
-	Ready       bool
+	Active      bool
 }
 
 type BingosLogin struct {

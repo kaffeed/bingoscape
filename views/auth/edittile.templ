@@ -88,6 +88,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 			disabled?={ !isManagement }
 		/>
 	</label>
+	<input type="hidden" name="imagepath" value={ tile.Imagepath }/>
 }
 
 templ EditTile(isManagement bool, tm views.TileModel) {

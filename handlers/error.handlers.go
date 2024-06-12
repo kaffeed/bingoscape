@@ -16,11 +16,6 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 	c.Logger().Error(err)
 
-	/* errorPage := fmt.Sprintf("views/%d.html", code)
-	if err := c.File(errorPage); err != nil {
-		c.Logger().Error(err)
-	} */
-
 	var errorPage func(fp bool) templ.Component
 
 	switch code {

@@ -57,6 +57,9 @@ INSERT INTO template_tiles(title, imagepath, description) VALUES ($1, $2, $3) re
 -- name: GetTemplateTiles :many
 SELECT * FROM template_tiles;
 
+-- name: GetTemplateImagePath :one
+SELECT imagepath from template_tiles where id = $1;
+
 -- name: GetPossibleBingoParticipants :many
 SELECT l.id, l.name FROM public.logins l
 	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = $1)
@@ -74,7 +77,7 @@ SELECT * FROM bingos;
 SELECT b.* FROM bingos b
 JOIN bingos_logins bl ON b.id = bl.bingo_id
 JOIN logins l ON bl.login_id = l.id
-WHERE l.id = $1;
+WHERE l.id = $1 and b.active;
 
 -- name: GetBingoById :one
 SELECT * FROM bingos WHERE id = $1;
@@ -100,7 +103,10 @@ DELETE FROM bingos_logins WHERE login_id = $1 AND bingo_id = $2;
 INSERT INTO bingos_logins (login_id, bingo_id) VALUES ($1, $2);
 
 -- name: CreateBingo :one
-INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, ready, codephrase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
+INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, active, codephrase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: CreateTile :one
 INSERT INTO tiles(title, imagepath, description, bingo_id) VALUES ($1, $2, $3, $4) returning *;
+
+-- name: ToggleBingoState :one
+UPDATE bingos SET active = NOT active WHERE id = $1 returning active;

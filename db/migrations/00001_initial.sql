@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS public.logins
 (
     id serial NOT NULL,
-    name character varying(64) NOT NULL,
+    name character varying(64) UNIQUE NOT NULL,
     is_management boolean NOT NULL DEFAULT 'false',
     password character varying NOT NULL,
     PRIMARY KEY (id)

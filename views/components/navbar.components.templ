@@ -54,21 +54,20 @@ templ Navbar(username string, isAuthenticated, isManagement bool) {
 templ menuContent(isManagement bool) {
 	if isManagement {
 		<li>
-			<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins/create" class="text-xl">
-				Create Login
-			</a>
+			<details>
+				<summary class="text-xl">User Management</summary>
+				<ul class="p-2">
+					<li>
+						<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins/create" class="text-xl">
+							Create Login
+						</a>
+					</li>
+					<li><a class="text-xl" hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins">Manage</a></li>
+				</ul>
+			</details>
+		</li>
+		<li>
+			<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/tiles/templates" class="text-xl">Template Tiles</a>
 		</li>
 	}
-	<li>
-		<details>
-			<summary class="text-xl">Usermanagement</summary>
-			<ul class="p-2">
-				<a hx-swap="transition:true" hx-target="body" hx-push-url="true" href="/logins/create" class="text-xl">
-					Create Login
-				</a>
-				<li><a class="text-xl" href="/logins">Manage</a></li>
-			</ul>
-		</details>
-	</li>
-	<li><a class="text-xl">Item 3</a></li>
 }

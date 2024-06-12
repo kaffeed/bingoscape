@@ -6,7 +6,6 @@ import "github.com/kaffeed/bingoscape/db"
 
 templ BingoTable(isManagement bool, bingos []db.Bingo, loc *time.Location) {
 	if len(bingos) == 0 {
-		<p>HERE BE DRAGONS</p>
 		if isManagement {
 			<p class="py-6">Pretty empty here, huh? </p>
 			<button
@@ -19,7 +18,7 @@ templ BingoTable(isManagement bool, bingos []db.Bingo, loc *time.Location) {
 				New Bingo
 			</button>
 		} else {
-			<p class="py-6">You don't participate in any bingos yet. Ask your clan management to assign you to one.</p>
+			<p class="py-6">You don't participate in any bingos yet. Either your clan management hasn't assigned you to one yet, or its not active.</p>
 		}
 	} else {
 		<div class="overflow-x-auto">
@@ -63,6 +62,7 @@ templ tableHeaders(isManagement bool) {
 		<th>Code-Phrase</th>
 		<th>Size</th>
 		if isManagement {
+			<th>State</th>
 			<th></th>
 		}
 	</tr>
@@ -93,6 +93,17 @@ templ bingoTableRow(bingo db.Bingo, isManagement bool, _ *time.Location) {
 			<span class="badge badge-ghost badge-sm">{ fmt.Sprintf("%d x %d", bingo.Rows, bingo.Cols) }</span>
 		</td>
 		if isManagement {
+			<td>
+				if bingo.Active {
+					<span class="badge badge-success gap-2">
+						Active
+					</span>
+				} else {
+					<span class="badge badge-warning gap-2">
+						Inactive
+					</span>
+				}
+			</td>
 			<td>
 				<button
 					hx-swap="transition:true"

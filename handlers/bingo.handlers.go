@@ -17,6 +17,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kaffeed/bingoscape/db"
+	"github.com/kaffeed/bingoscape/internal/util"
 	"github.com/kaffeed/bingoscape/services"
 	"github.com/kaffeed/bingoscape/views"
 	authviews "github.com/kaffeed/bingoscape/views/auth"
@@ -410,7 +411,7 @@ func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
 			if _, err = io.Copy(dst, src); err != nil {
 				return err
 			}
-			filePaths = append(filePaths, staticPath(dst.Name()))
+			filePaths = append(filePaths, util.StaticPath(dst.Name()))
 		}
 
 		u := c.Get(user_id_key).(int32)
@@ -497,30 +498,20 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 		var f string
 
-		if err == nil {
-			src, err := file.Open()
+		if err != nil {
+			var imagePath string
+			err := echo.FormFieldBinder(c).String("imagepath", &imagePath).BindError()
 			if err != nil {
-				return err
+				f = tile.Imagepath
+			} else {
+				f = imagePath
 			}
-			defer src.Close()
-
-			// Destination
-
-			p := filepath.Join(os.Getenv("IMAGE_PATH"), "tiles")
-			dst, err := os.CreateTemp(p, fmt.Sprintf("bingoscape-*%s", path.Ext(file.Filename)))
-
-			if err != nil {
-				return err
-			}
-			defer dst.Close()
-
-			// Copy
-			if _, err = io.Copy(dst, src); err != nil {
-				return err
-			}
-			f = staticPath(dst.Name())
 		} else {
-			f = "https://i.ibb.co/7N9Pjcs/image.png"
+			f, err = util.SaveFile(file)
+
+			if err != nil {
+				f = tile.Imagepath
+			}
 		}
 
 		t := db.UpdateTileParams{ // TODO: Read from config
@@ -532,14 +523,6 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 		_, err = bh.BingoService.Store.UpdateTile(context.Background(), t)
 
-		if c.FormValue("saveAsTemplate") == "on" {
-			_, _ = bh.BingoService.Store.CreateTemplateTile(context.Background(), db.CreateTemplateTileParams{
-				Title:       t.Title,
-				Imagepath:   t.Imagepath,
-				Description: t.Description,
-			})
-		}
-
 		if err != nil {
 			return echo.NewHTTPError(
 				echo.ErrInternalServerError.Code,
@@ -549,7 +532,15 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 				))
 		}
 
-		setFlashmessages(c, "success", "Created a new bingo!")
+		if c.FormValue("saveAsTemplate") == "on" {
+			_, _ = bh.BingoService.Store.CreateTemplateTile(context.Background(), db.CreateTemplateTileParams{
+				Title:       t.Title,
+				Imagepath:   t.Imagepath,
+				Description: t.Description,
+			})
+		}
+
+		setFlashmessages(c, "success", "Updated tile!")
 
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/bingos/%d", tile.BingoID))
 	}
@@ -585,10 +576,6 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	))
 }
 
-func staticPath(imgPath string) string {
-	return strings.Replace(imgPath, os.Getenv("IMAGE_PATH"), "/img", -1)
-}
-
 func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
@@ -613,7 +600,7 @@ func (bh *BingoHandler) RegisterHandler(c echo.Context) error {
 		err := bh.UserService.CreateUser(user)
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-				err = errors.New("the email is already in use")
+				err = errors.New("the name is already in use")
 				setFlashmessages(c, "error", fmt.Sprintf(
 					"something went wrong: %s",
 					err,
@@ -828,4 +815,32 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		getFlashmessages(c, "success"),
 		bingoView,
 	))
+}
+
+func (bh *BingoHandler) handleBingoState(c echo.Context) error {
+
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return c.Redirect(http.StatusUnauthorized, c.Request().URL.RequestURI()) // FIXME: is this the right way?
+	}
+
+	var bingoId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).BindError()
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	bingoReady, err := bh.BingoService.Store.ToggleBingoState(context.Background(), bingoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	return render(c, authviews.BingoStateButton(bingoId, bingoReady))
 }
