@@ -85,27 +85,30 @@ templ BingoStateButton(bingoId int32, ready bool) {
 templ tileView(isManagement bool, t views.TileModel, loginId int32) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer relative "
+		class="cursor-pointer relative border border-gray-500 border-rounded"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
 	>
-		<img src={ t.Imagepath } class="grid-item" alt="Shoes"/>
-		if isManagement {
-			if t.Stats(loginId).HasSubmissions {
-				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
-				<div class="absolute inset-0 flex items-center justify-center">
-					@stats(isManagement, t.Stats(loginId))
-				</div>
+		<div class="relative h-4/5">
+			<img src={ t.Imagepath } class="bingo-image" alt="Shoes"/>
+			if isManagement {
+				if t.Stats(loginId).HasSubmissions {
+					<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
+					<div class="absolute inset-0 flex items-center justify-center">
+						@stats(isManagement, t.Stats(loginId))
+					</div>
+				}
+			} else {
+				if t.Stats(loginId).State != "" {
+					<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
+					<div class="absolute inset-0 flex items-center justify-center">
+						@stats(isManagement, t.Stats(loginId))
+					</div>
+				}
 			}
-		} else {
-			if t.Stats(loginId).State != "" {
-				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
-				<div class="absolute inset-0 flex items-center justify-center">
-					@stats(isManagement, t.Stats(loginId))
-				</div>
-			}
-		}
+		</div>
+		<div class="rs flex h-1/5 items-center justify-center text-xl">{ t.Title }</div>
 	</div>
 }
 

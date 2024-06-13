@@ -13,15 +13,15 @@
         color: #f8fe08
     }
 
+    .bingo-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* or "contain" */
+    }
 
     .tile-card-image {
       width: 100%;
       height: 100%;
-      object-fit: contain; /* or "contain" */
-    }
-
-    .grid-item {
-      width: 100%;
       object-fit: contain; /* or "contain" */
     }
 
