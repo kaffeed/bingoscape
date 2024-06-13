@@ -33,7 +33,7 @@ test:
 ## build-api: build a binary
 .PHONY: build-api
 build-api: test
-	go build  -o ./tmp/main -v ./cmd/api
+	go build  -o ./tmp/main -v ./
 
 ## docker-build: build project into a docker container image
 .PHONY: docker-build
@@ -44,7 +44,7 @@ docker-build: test
 ## build-release: build a binary
 .PHONY: build-release
 build-release: test css templ
-	go build  -o ./tmp/main -v ./cmd/api
+	go build  -o ./tmp/main -v ./
 
 ## docker-run: run project in a container
 .PHONY: docker-run

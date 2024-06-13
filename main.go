@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"embed"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -33,6 +35,9 @@ func setupImageDirectories(path string) {
 	}
 }
 
+//go:embed assets
+var webAssets embed.FS
+
 func main() {
 	godotenv.Load()
 	e := echo.New()
@@ -43,7 +48,7 @@ func main() {
 		log.Fatalf("Error connecting to db: %#v", err)
 	}
 	defer connpool.Close()
-	e.Static("/", "assets")
+	// e.Static("/", "assets")
 	p := filepath.Join(os.Getenv("IMAGE_PATH"))
 	setupImageDirectories(p)
 
@@ -53,6 +58,11 @@ func main() {
 	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		// HTML5:      true,
+		Root:       "assets", // because files are located in `web` directory in `webAssets` fs
+		Filesystem: http.FS(webAssets),
+	}))
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))
 
 	store := db.New(connpool)

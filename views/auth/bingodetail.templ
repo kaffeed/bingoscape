@@ -11,7 +11,7 @@ templ BingoDetail(isManagement bool, bingo views.BingoDetailModel, loginId int32
 			@bingoDetailHeader(isManagement, bingo)
 			<div class="divider"></div>
 			<div
-				class={ "grid" , "grid-flow-col" , fmt.Sprintf("grid-rows-%d",bingo.Rows), fmt.Sprintf("grid-cols-%d",
+				class={ "grid" , "grid-flow-row" , fmt.Sprintf("grid-rows-%d",bingo.Rows), fmt.Sprintf("grid-cols-%d",
 		bingo.Cols), "gap-1" }
 			>
 				for _, t := range bingo.Tiles {
@@ -35,11 +35,11 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 				<!-- Valid Dates -->
 				<div class="grid grid-cols-2 gap-4 mb-8">
 					<div>
-						<p class="text-lg md:text-xl font-bold">Valid from:</p>
+						<p class="text-lg md:text-xl font-bold">Start (UTC):</p>
 						<p class="text-gray-500">{ bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") }</p>
 					</div>
 					<div>
-						<p class="text-lg md:text-xl font-bold">Valid to:</p>
+						<p class="text-lg md:text-xl font-bold">End (UTC):</p>
 						<p class="text-gray-500">{ bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
 					</div>
 				</div>

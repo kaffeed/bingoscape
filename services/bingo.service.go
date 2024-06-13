@@ -228,7 +228,7 @@ func (bs *BingoService) CreateBingo(b db.CreateBingoParams) (views.BingoDetailMo
 	tiles := make([]db.Tile, b.Rows*b.Cols)
 	for i := 0; i < int(b.Rows*b.Cols); i++ {
 		tiles[i], err = qtx.CreateTile(context.Background(), db.CreateTileParams{
-			Title:       fmt.Sprintf("Tile %d", i),
+			Title:       fmt.Sprintf("Tile %d", i+1),
 			Imagepath:   "https://i.ibb.co/7N9Pjcs/image.png",
 			Description: fmt.Sprintf("This is tile %d", i),
 			BingoID:     bingo.ID,
