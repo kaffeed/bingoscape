@@ -7,8 +7,6 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	e.GET("/login", authHandlers.flagsMiddleware(authHandlers.loginHandler))
 	e.POST("/login", authHandlers.flagsMiddleware(authHandlers.loginHandler))
 	e.POST("/logout", authHandlers.authMiddleware(authHandlers.logoutHandler))
-	// e.GET("/register", ah.flagsMiddleware(ah.registerHandler))
-	// e.POST("/register", ah.flagsMiddleware(ah.registerHandler))
 
 	teamGroup := e.Group("/logins", authHandlers.authMiddleware)
 	teamGroup.GET("", authHandlers.handleUsermanagement)

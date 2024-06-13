@@ -41,14 +41,6 @@ func NewBingoHandler(bs *services.BingoService, us *services.UserService) *Bingo
 	}
 }
 
-func (bh *BingoHandler) handleGetActiveBingo(c echo.Context) error {
-	if c.Request().Method != "GET" {
-		return errors.New("Invalid http method!")
-	}
-
-	return nil
-}
-
 func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok || !isAuthenticated {
@@ -62,14 +54,18 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 
 	bingo, err := bh.BingoService.GetBingo(bingoId)
 
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
 	p, err := bh.BingoService.GetParticipants(bingoId)
 	if err != nil {
-		return fmt.Errorf("Could not get participants! %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	pp, err := bh.BingoService.GetPossibleParticipants(bingoId)
 	if err != nil {
-		return fmt.Errorf("Could not get possible participants! %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	participantTable := components.BingoTeams(isManagement, views.BingoDetailModel{
 		Bingo:                bingo,
@@ -90,9 +86,10 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 	if !isAuthenticated {
 		return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Need to be authenticated")
 	}
+
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !ok {
-		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
+		return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Errorf("invalid type for key '"+mgmnt_key+"'"))
 	}
 
 	if !isManagement {
@@ -107,19 +104,15 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 		BindError()
 
 	if err != nil {
-		return fmt.Errorf("Need valid tile id: %w", err)
+		return fmt.Errorf("need valid tile id: %w", err)
 	}
 
 	var templateId int32
 	err = echo.QueryParamsBinder(c).Int32("templateId", &templateId).BindError()
 
 	if err != nil {
-		return fmt.Errorf("Need valid template id: %w", err)
+		return fmt.Errorf("need valid template id: %w", err)
 	}
-
-	log.Printf("####################################################################################################")
-	log.Printf("can load queryparams")
-	log.Printf("####################################################################################################")
 
 	tile, err := bh.BingoService.LoadTile(int(tileId))
 	if err != nil {
@@ -127,24 +120,19 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 	}
 	fmt.Printf("Tile: %#v", tile)
 
-	uid, ok := c.Get(user_id_key).(int32)
+	uid, _ := c.Get(user_id_key).(int32)
 	var templates []db.TemplateTile
 	var submissions views.Submissions
 
 	if isManagement {
-		submissions, err = bh.BingoService.LoadAllSubmissionsForTile(tile.ID)
-		templates, err = bh.BingoService.Store.GetTemplateTiles(context.Background())
+		submissions, _ = bh.BingoService.LoadAllSubmissionsForTile(tile.ID)
 	} else {
-		submissions, err = bh.BingoService.LoadUserSubmissions(tile.ID, uid)
+		submissions, _ = bh.BingoService.LoadUserSubmissions(tile.ID, uid)
 	}
 	templates, err = bh.BingoService.Store.GetTemplateTiles(context.Background())
 	if err != nil {
 		return err
 	}
-
-	log.Printf("####################################################################################################")
-	log.Printf("can load templates")
-	log.Printf("####################################################################################################")
 
 	idx := slices.IndexFunc(templates, func(myTempl db.TemplateTile) bool {
 		return myTempl.ID == templateId
@@ -155,10 +143,6 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 		tile.Title = templateTile.Title
 		tile.Description = templateTile.Description
 		tile.Imagepath = templateTile.Imagepath
-
-		log.Printf("####################################################################################################")
-		log.Printf("Could update from template")
-		log.Printf("####################################################################################################")
 	}
 
 	tm := views.TileModel{
@@ -483,13 +467,16 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 		isManagement = false
 	}
 
-	tileId, err := strconv.Atoi(c.Param("tileId"))
+	var tileId int
+	err := echo.PathParamsBinder(c).Int("tileId", &tileId).BindError()
 	if err != nil {
-		return fmt.Errorf("Need valid tile id: %w", err)
+		return echo.ErrNotFound
 	}
 
 	tile, err := bh.BingoService.LoadTile(tileId)
-	fmt.Printf("Tile: %#v", tile)
+	if err != nil {
+		return echo.ErrNotFound
+	}
 
 	c.Set("ISERROR", false)
 
@@ -610,20 +597,33 @@ func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !ok {
-		return fmt.Errorf("Invalid type for key '" + mgmnt_key + "'")
+		return fmt.Errorf("invalid type for key '" + mgmnt_key + "'")
 	}
 	registerView := authviews.CreateUser(isManagement)
 	// isError = false
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "POST" {
-		user := db.CreateLoginParams{
-			Password:     c.FormValue("password"),
-			Name:         c.FormValue("username"),
-			IsManagement: c.FormValue("management") == "on",
+		var p, n, m string
+
+		err := echo.
+			FormFieldBinder(c).
+			String("password", &p).
+			String("username", &n).
+			String("management", &m).
+			BindError()
+
+		if err != nil {
+			return echo.ErrBadRequest
 		}
 
-		err := bh.UserService.CreateUser(user)
+		user := db.CreateLoginParams{
+			Password:     p,
+			Name:         n,
+			IsManagement: m == "on",
+		}
+
+		err = bh.UserService.CreateUser(user)
 		if err != nil {
 			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 				err = errors.New("the username is already in use")
@@ -632,7 +632,7 @@ func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 					err,
 				))
 
-				return c.Redirect(http.StatusSeeOther, "/register")
+				return c.Redirect(http.StatusSeeOther, "/logins/create")
 			}
 
 			return echo.NewHTTPError(
@@ -643,7 +643,7 @@ func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 				))
 		}
 
-		setFlashmessages(c, "success", "You have successfully registered!!")
+		setFlashmessages(c, "success", "You have successfully created a new login!")
 
 		return c.Redirect(http.StatusSeeOther, "/")
 	}
@@ -686,10 +686,6 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 	return render(c, bingoTable)
 }
 
-type ParticipantId struct {
-	id int `form:"possibleparticipants,omitempty"`
-}
-
 func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 	var bingoId int
 	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
@@ -702,13 +698,13 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 	if !isAuthenticated {
 		return c.Redirect(http.StatusUnauthorized, "/")
 	}
-	isManagement, ok := c.Get(mgmnt_key).(bool)
+	isManagement, _ := c.Get(mgmnt_key).(bool)
 	if !isManagement {
 		return err
 	}
 	bingo, err := bh.BingoService.GetBingo(bingoId)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	if c.Request().Method == "POST" {
@@ -746,16 +742,16 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
 
 	if err != nil {
-		return errors.New("Can't parse bingoId from params")
+		return errors.New("can't parse bingoId from params")
 	}
 	pId, err := strconv.Atoi(c.Param("pId"))
 	if err != nil {
-		return errors.New("Can't parse participationId from params")
+		return errors.New("can't parse participationId from params")
 	}
 
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !isAuthenticated {
-		return errors.New("Need to be authenticated")
+		return errors.New("need to be authenticated")
 	}
 	log.Printf("Removing Bingo participant %d", pId)
 	if !ok {
@@ -764,24 +760,28 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !ok || !isManagement {
 		log.Fatalf("Needs to be management!!")
-		return errors.New("Needs to be management")
+		return errors.New("needs to be management")
 	}
 
 	err = bh.BingoService.RemoveParticipation(pId, bingoId)
 	if err != nil {
-		return fmt.Errorf("Could not remove participation %d from bingo %d", pId, bingoId)
+		return fmt.Errorf("could not remove participation %d from bingo %d", pId, bingoId)
 	}
 
 	bingo, err := bh.BingoService.GetBingo(bingoId)
 
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("could not load bingo! %w", err))
+	}
+
 	p, err := bh.BingoService.GetParticipants(bingoId)
 	if err != nil {
-		return fmt.Errorf("Could not get participants! %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("could not get participants! %w", err))
 	}
 
 	pp, err := bh.BingoService.GetPossibleParticipants(bingoId)
 	if err != nil {
-		return fmt.Errorf("Could not get possible participants! %w", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("could not get participants! %w", err))
 	}
 
 	return render(c, components.BingoTeams(isManagement, views.BingoDetailModel{
@@ -794,7 +794,15 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 	var bingoId int
-	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
+	err := echo.
+		PathParamsBinder(c).
+		Int("bingoId", &bingoId).
+		BindError()
+
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
 	if !ok {
@@ -819,6 +827,9 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 	}
 
 	tiles, err := bh.BingoService.LoadTilesForBingo(bingoId)
+	if err != nil {
+		return echo.ErrNotFound
+	}
 
 	uid := c.Get(user_id_key).(int32)
 	bm := views.BingoDetailModel{
