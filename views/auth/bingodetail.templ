@@ -85,7 +85,7 @@ templ BingoStateButton(bingoId int32, ready bool) {
 templ tileView(isManagement bool, t views.TileModel, loginId int32) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer relative border border-gray-500 border-rounded"
+		class="cursor-pointer w-full relative border border-gray-500 border-rounded"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
@@ -108,7 +108,7 @@ templ tileView(isManagement bool, t views.TileModel, loginId int32) {
 				}
 			}
 		</div>
-		<div class="rs flex h-1/5 items-center justify-center text-xl">{ t.Title }</div>
+		<div class="flex h-1/5 items-center justify-center rs w-full"><p class="truncate text-lg text-bold">{ t.Title }</p></div>
 	</div>
 }
 

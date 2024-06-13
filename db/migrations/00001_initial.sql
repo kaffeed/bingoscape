@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS public.logins
 (
     id serial NOT NULL,
-    name character varying(64) UNIQUE NOT NULL,
+    name character varying(64) NOT NULL,
     is_management boolean NOT NULL DEFAULT 'false',
     password character varying NOT NULL,
     PRIMARY KEY (id)
@@ -100,7 +100,7 @@ ALTER TABLE IF EXISTS public.submissions
     ADD FOREIGN KEY (tile_id)
     REFERENCES public.tiles (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     NOT VALID;
 
 
@@ -108,7 +108,7 @@ ALTER TABLE IF EXISTS public.submission_images
     ADD FOREIGN KEY (submission_id)
     REFERENCES public.submissions (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     NOT VALID;
 END;
 -- +goose StatementEnd
