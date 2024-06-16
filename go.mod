@@ -3,7 +3,7 @@ module github.com/kaffeed/bingoscape
 go 1.22.3
 
 require (
-	github.com/a-h/templ v0.2.680
+	github.com/a-h/templ v0.2.707
 	github.com/gorilla/sessions v1.2.2
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/joho/godotenv v1.5.1

@@ -1,0 +1,67 @@
+package components
+
+import "fmt"
+import "github.com/kaffeed/bingoscape/app/views"
+
+templ BingoTeams(isManagement bool, bingo views.BingoDetailModel) {
+	<div class="overflow-x-auto" id="bingoTeamsView">
+		@ParticipantsTable(isManagement, bingo)
+		if isManagement {
+			<div class="divider"></div>
+			<footer class="card-actions justify-end">
+				<select
+					hx-post={ fmt.Sprintf("/bingos/%d/participants", bingo.ID) }
+					hx-target="#bingoTeamsView"
+					hx-trigger="change"
+					hx-swap="outerHTML"
+					name="team"
+					class="select select-bordered w-full max-w-xs"
+				>
+					<option disabled selected>Add a team</option>
+					for _, p := range bingo.PossibleParticipants {
+						<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
+					}
+				</select>
+			</footer>
+		}
+	</div>
+}
+
+templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
+	if len(b.Participants) == 0 {
+		<p class="py-6">Pretty empty here, huh? Try assigning a team :)</p>
+	} else {
+		<table class="table" id="bingoTable">
+			<thead>
+				<tr>
+					<th>Team</th>
+					if isManagement {
+						<th class="float-right"></th>
+					}
+				</tr>
+			</thead>
+			<tbody id="participants" class="justify-end">
+				for _, p := range b.Participants {
+					<tr>
+						<td>
+							{ p.Name }
+						</td>
+						if isManagement {
+							<td>
+								<button
+									hx-confirm="Are you sure you want to remove this participant?"
+									hx-delete={ fmt.Sprintf("/bingos/%d/participants/%d", b.ID, p.ID) }
+									hx-target="#bingoTeamsView"
+									hx-swap="outerHTML"
+									class="btn btn-ghost text-lg float-right"
+								>
+									Remove
+								</button>
+							</td>
+						}
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+}

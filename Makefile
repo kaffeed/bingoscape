@@ -16,82 +16,81 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
-## init: initialize project (make init module=github.com/user/project)
-.PHONY: init
-init:
-	go mod init ${module}
-	go install github.com/cosmtrek/air@latest
-	go install github.com/pressly/goose/v3/cmd/goose@latest
-	go install github.com/a-h/templ/cmd/templ@latest
-	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+# run templ generation in watch mode to detect all .templ files and 
+# re-create _templ.txt files on change, then send reload event to browser. 
+# Default url: http://localhost:7331
+templ:
+	@go run github.com/a-h/templ/cmd/templ@latest generate --watch --proxy="http://localhost$(HTTP_LISTEN_ADDR)" --open-browser=false -v
+
+# run air to detect any go file changes to re-build and re-run the server.
+server:
+	@go run github.com/air-verse/air@latest \
+	--build.cmd "go build --tags dev -o tmp/bin/main ./cmd/app/" --build.bin "tmp/bin/main" --build.delay "100" \
+	--build.exclude_dir "node_modules" \
+	--build.include_ext "go" \
+	--build.stop_on_error "false" \
+	--misc.clean_on_exit true
+
+# run tailwindcss to generate the styles.css bundle in watch mode.
+watch-assets:
+	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css --watch   
+
+# # run esbuild to generate the index.js bundle in watch mode.
+# watch-esbuild:
+# 	npx esbuild app/assets/index.js --bundle --outdir=public/assets --watch
+
+# watch for any js or css change in the assets/ folder, then reload the browser via templ proxy.
+sync_assets:
+	@go run github.com/air-verse/air@latest \
+	--build.cmd "go run github.com/a-h/templ/cmd/templ@latest generate --notify-proxy" \
+	--build.bin "true" \
+	--build.delay "100" \
+	--build.exclude_dir "" \
+	--build.include_dir "public" \
+	--build.include_ext "js,css"
+
+# build the application for production. This will compile your app
+# to a single binary with all its assets embedded.
+build:
+	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css
+	# @npx esbuild app/assets/index.js --bundle --outdir=public/assets
+	@go build -o bin/app_prod cmd/app/main.go
+	@echo "compiled you application with all its assets to a single binary => bin/app_prod"
+
+
+
+# start the application in development
+dev:
+	@make -j5 templ server watch-assets sync_assets
 
 ## test: run unit tests
 .PHONY: test
 test:
 	go test -race -cover $(PACKAGES)
 
-## build-api: build a binary
-.PHONY: build-api
-build-api: test
-	go build  -o ./tmp/main -v ./
+## db-status: run database-status
+.PHONY: db-status
+db-status:
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest status
 
-## docker-build: build project into a docker container image
-.PHONY: docker-build
-docker-build: test
-	GOPROXY=direct docker buildx build -t ${name} .
+## db-reset: run database-reset
+.PHONY: db-reset
+db-reset:
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) reset
 
+## db-down: run migrate database-down
+.PHONY: db-down
+db-down:
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) down
 
-## build-release: build a binary
-.PHONY: build-release
-build-release: test css templ
-	go build  -o ./tmp/main -v ./
+## db-up: migrate database-up
+.PHONY: db-up
+db-up:
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
 
-## docker-run: run project in a container
-.PHONY: docker-run
-docker-run:
-	docker run -it --rm -p 8080:8080 ${name}
+## db-mig-create: create new migration
+.PHONY: db-mig-create
+db-mig-create:
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) -s create $(filter-out $@,$(MAKECMDGOALS)) sql
 
-## start-api: build and run local project
-.PHONY: start-api
-start-api: build-api
-	air
-
-## css: build tailwindcss
-.PHONY: css
-css:
-	npx tailwindcss -i assets/css/input.css -o assets/css/styles.css --minify
-
-## css-watch: watch build tailwindcss
-.PHONY: css-watch
-css-watch:
-	npx tailwindcss -i assets/css/input.css -o assets/css/styles.css --watch
-
-## templ: generate templ
-.PHONY: templ
-templ:
-	templ generate
-
-## templ-watch: generate templ and watch for changes
-.PHONY: templ-watch
-templ-watch:
-	templ generate --watch
-
-## migration-up: migrate database-up
-.PHONY: migration-up
-migration-up: 
-	goose -dir db/migrations/ postgres "${DB}" up
-
-## migration-down: run migrate database-down
-.PHONY: migration-down
-migration-down: 
-	goose -dir db/migrations/ postgres "${DB}" down
-
-## migration-new: force db version
-.PHONY: migration-new
-migration-new: 
-	goose -dir db/migrations/ -s create "${migration}" sql
-
-## db-version: check database version
-.PHONY: db-version
-db-version: 
-	goose -dir db/migrations/ postgres "${DB}" version
