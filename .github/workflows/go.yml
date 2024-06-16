@@ -32,7 +32,7 @@ jobs:
               DB_DRIVER=${{ vars.DB_DRIVER }}
               MIGRATION_DIR=${{ vars.MIGRATION_DIR }}
               IMAGE_PATH=${{ secrets.IMAGE_PATH }}
-              HTTP_LISTEN_ADDR=${{ vars.HTTP_LISTEN_ADDR }}" >> .env
+              HTTP_LISTEN_ADDR=${{ vars.HTTP_LISTEN_ADDR }}" >> bin/.env
     - name: Display-Buildfiles
       run: ls -R bin/
     - name: Copy-Build-Golang-App
