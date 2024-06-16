@@ -57,7 +57,6 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		// HTML5:      true,
 		Root:       "assets", // because files are located in `assets` directory in `webAssets` fs
 		Filesystem: http.FS(public.AssetsFS),
 	}))
