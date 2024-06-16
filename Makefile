@@ -60,8 +60,8 @@ generate-code:
 
 build:
 	@make generate-code
-	@go build -o bin/app_prod cmd/app/main.go
-	@echo "compiled you application with all its assets to a single binary => bin/app_prod"
+	@go build -o bin/bingoscape cmd/app/main.go
+	@echo "compiled you application with all its assets to a single binary => bin/bingoscape"
 
 # start the application in development
 dev:
