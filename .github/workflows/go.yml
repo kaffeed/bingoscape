@@ -54,5 +54,5 @@ jobs:
         script: |
           cd /var/www/bingoscape
           ls -l
-          sudo systemctl restart bingoscape
-          sudo systemctl status bingoscape            
+          echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl restart bingoscape
+          echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl status bingoscape            
