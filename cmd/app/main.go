@@ -40,7 +40,7 @@ func main() {
 	e := echo.New()
 
 	ctx := context.Background()
-	connpool, err := pgxpool.New(ctx, os.Getenv("DB"))
+	connpool, err := pgxpool.New(ctx, os.Getenv("DB_URL"))
 	if err != nil {
 		log.Fatalf("Error connecting to db: %#v", err)
 	}

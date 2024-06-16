@@ -20,6 +20,7 @@ help: Makefile
 # run templ generation in watch mode to detect all .templ files and 
 # re-create _templ.txt files on change, then send reload event to browser. 
 # Default url: http://localhost:7331
+#
 templ:
 	@go run github.com/a-h/templ/cmd/templ@latest generate --watch --proxy="http://localhost$(HTTP_LISTEN_ADDR)" --open-browser=false -v
 
@@ -53,6 +54,7 @@ sync_assets:
 # build the application for production. This will compile your app
 # to a single binary with all its assets embedded.
 build:
+	@go run github.com/a-h/templ/cmd/templ@latest generate -v
 	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css
 	# @npx esbuild app/assets/index.js --bundle --outdir=public/assets
 	@go build -o bin/app_prod cmd/app/main.go
