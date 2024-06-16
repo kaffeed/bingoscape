@@ -25,3 +25,34 @@ jobs:
         go-version: '1.22'
     - name: Build
       run: make build
+    - name: Display-Buildfiles
+      run: ls -R bin/
+    - name: Create Env File
+      run: |
+        echo "SECRET_KEY=${{ secrets.SESSION_SECRET }}
+              DB_URL=${{ secrets.DB_URL }}
+              DB_DRIVER=${{ vars.DB_DRIVER }}
+              MIGRATION_DIR=${{ vars.MIGRATION_DIR }}
+              IMAGE_PATH=${{ secrets.IMAGE_PATH }}
+              HTTP_LISTEN_ADDR=${{ vars.HTTP_LISTEN_ADDR }}" >> .env
+    - name: Copy-Build-Golang-App
+      uses: appleboy/scp-action@master
+      with:
+        host: '${{ secrets.SSH_HOST }}'
+        username: '${{ secrets.SSH_NAME }}'
+        key: '${{ secrets.SSH_KEY }}'
+        port: '${{ secrets.SSH_PORT }}'
+        source: build/
+        target: /var/www/bingoscape
+    - name: Restart-BingoScape-On-Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: '${{ secrets.SSH_HOST }}'
+        username: '${{ secrets.SSH_NAME }}'
+        key: '${{ secrets.SSH_KEY }}'
+        port: '${{ secrets.SSH_PORT }}'
+        script: |
+          cd /var/www/bingoscape
+          ls -l
+          sudo systemctl restart bingoscape
+          sudo systemctl status bingoscape            
