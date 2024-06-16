@@ -34,7 +34,7 @@ jobs:
               IMAGE_PATH=${{ secrets.IMAGE_PATH }}
               HTTP_LISTEN_ADDR=${{ vars.HTTP_LISTEN_ADDR }}" >> bin/.env
     - name: Display-Buildfiles
-      run: ls -R bin/
+      run: ls -la bin/
     - name: Copy-Build-Golang-App
       uses: appleboy/scp-action@master
       with:
