@@ -19,10 +19,6 @@ jobs:
       with:
         node-version: 18
     - run: npm i
-    - name: Generate templ
-    - uses: capthiron/templ-generator-action@v1
-      with:
-        directory: app/views
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
