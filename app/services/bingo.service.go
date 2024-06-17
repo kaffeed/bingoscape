@@ -250,5 +250,6 @@ func (bs *BingoService) CreateBingo(b db.CreateBingoParams) (views.BingoDetailMo
 		Bingo: bingo,
 		Tiles: tm,
 	}
+
 	return res, nil
 }

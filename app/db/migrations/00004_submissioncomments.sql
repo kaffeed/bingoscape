@@ -16,7 +16,7 @@ ALTER TABLE IF EXISTS public.submission_comments
     ADD FOREIGN KEY (submission_id)
     REFERENCES public.submissions (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE cascade
     NOT VALID;
 END;
 
@@ -24,7 +24,7 @@ ALTER TABLE IF EXISTS public.submission_comments
     ADD FOREIGN KEY (login_id)
     REFERENCES public.logins (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE cascade
     NOT VALID;
 END;
 

@@ -285,7 +285,7 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 
 	err := bh.BingoService.Store.DeleteBingoById(context.Background(), int32(bingoId))
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("problem during bingo deletion %w", err))
 	}
 
 	return c.Redirect(http.StatusSeeOther, "/")
