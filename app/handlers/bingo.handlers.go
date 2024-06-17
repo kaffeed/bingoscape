@@ -599,6 +599,12 @@ func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 	if !ok {
 		return fmt.Errorf("invalid type for key '" + mgmnt_key + "'")
 	}
+
+	if !isAuthenticated || !isManagement {
+		setFlashmessages(c, "error", "need to be authenticated and management for creating users")
+		return c.Redirect(http.StatusUnauthorized, "/")
+	}
+
 	registerView := authviews.CreateUser(isManagement)
 	// isError = false
 	c.Set("ISERROR", false)
@@ -644,7 +650,6 @@ func (bh *BingoHandler) handleCreateLogin(c echo.Context) error {
 		}
 
 		setFlashmessages(c, "success", "You have successfully created a new login!")
-
 		return c.Redirect(http.StatusSeeOther, "/")
 	}
 
