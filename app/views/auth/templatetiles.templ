@@ -1,0 +1,72 @@
+package auth
+
+import "github.com/kaffeed/bingoscape/app/views/layout"
+import "github.com/kaffeed/bingoscape/app/db"
+
+templ TemplateTiles(templates []db.TemplateTile) {
+	if len(templates) == 0 {
+		Pretty empty here, huh? Try creating a template tile during bingo creation.
+	} else {
+		<div class="flex flex-col w-full">
+			<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
+				<table class="table">
+					<thead>
+						@tableHeaders()
+					</thead>
+					<tbody>
+						for _, tpl := range templates {
+							@templateTableRow(tpl)
+						}
+					</tbody>
+					<tfoot>
+						@tableHeaders()
+					</tfoot>
+				</table>
+				<footer class="card-actions justify-end">
+					<button
+						hx-swap="transition:true"
+						hx-get="/bingos/create"
+						hx-target="body"
+						hx-push-url="true"
+						class="btn btn-ghost text-lg rs"
+					>
+						Create new Template
+					</button>
+				</footer>
+			</section>
+		</div>
+	}
+}
+
+templ templateTableRow(t db.TemplateTile) {
+	<tr>
+		<td></td>
+		<td>{ t.Title }</td>
+		<td><img src={ t.Imagepath } alt={ t.Title } class="w-16 h-16 object-cover"/></td>
+		<td>{ t.Description }</td>
+		<td></td>
+	</tr>
+}
+
+templ tableHeaders() {
+	<tr>
+		<th></th>
+		<th>Title</th>
+		<th>image</th>
+		<th>Weight</th>
+		<th></th>
+	</tr>
+}
+
+templ TemplateTilesIndex(
+	title,
+	username string,
+	isAuthenticated bool,
+	isManagement bool,
+	isError bool,
+	errMsgs, sucMsgs []string,
+	cmp templ.Component) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
+		@cmp
+	}
+}

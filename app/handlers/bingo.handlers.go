@@ -239,6 +239,38 @@ func (bh *BingoHandler) handleCreateBingo(c echo.Context) error {
 	))
 }
 
+func (bh *BingoHandler) handleGetTemplateTiles(c echo.Context) error {
+	if isManagement, _ := c.Get(mgmnt_key).(bool); !isManagement {
+		setFlashmessages(c, "error", "Only management accounts can view and edit template tiles!")
+		return c.Redirect(http.StatusUnauthorized, "/")
+	}
+
+	if isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool); !isAuthenticated {
+		setFlashmessages(c, "error", "Log in to view and edit template tiles")
+		return c.Redirect(http.StatusUnauthorized, "/")
+	}
+
+	tt, err := bh.BingoService.Store.GetTemplateTiles(context.TODO())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "problem while loading template tiles")
+	}
+
+	tv := authviews.TemplateTiles(tt)
+
+	c.Set("ISERROR", false)
+
+	return render(c, authviews.TemplateTilesIndex(
+		"| Template Tiles",
+		"", // TODO: set someday
+		true,
+		true,
+		c.Get("ISERROR").(bool),
+		getFlashmessages(c, "error"),
+		getFlashmessages(c, "success"),
+		tv,
+	))
+}
+
 func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	if isManagement, _ := c.Get(mgmnt_key).(bool); !isManagement {
 		setFlashmessages(c, "error", "Only management accounts can delete bingos!")
