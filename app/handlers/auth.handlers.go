@@ -188,7 +188,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows in result set") {
 				setFlashmessages(c, "error", "There is no user with that email")
-
+				c.Set("ISERROR", true)
 				return c.Redirect(http.StatusSeeOther, "/login")
 			}
 
@@ -249,6 +249,42 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		getFlashmessages(c, "success"),
 		loginView,
 	))
+}
+
+func (ah *AuthHandler) handleChangePassword(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return fmt.Errorf("invalid type for key 'ISAUTHENTICATED'")
+	}
+	if !isAuthenticated {
+		setFlashmessages(c, "error", "You need to be authenticated for this action")
+		return c.Redirect(http.StatusSeeOther, "/login")
+	}
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+	if !isManagement {
+		return echo.NewHTTPError(http.StatusUnauthorized, "need to be management")
+	}
+
+	var userId int32
+	var pwd string
+
+	err := echo.PathParamsBinder(c).Int32("userId", &userId).BindError()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "invalid userid")
+	}
+	err = echo.FormFieldBinder(c).String("password", &pwd).BindError()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "need password")
+	}
+
+	u, err := ah.UserServices.UpdatePassword(userId, pwd)
+	if err != nil {
+		setFlashmessages(c, "error", fmt.Sprintf("Couldn't update password for user %s", u.Name))
+		return c.Redirect(http.StatusSeeOther, "/logins")
+	}
+
+	setFlashmessages(c, "success", fmt.Sprintf("Updated password for user %s", u.Name))
+	return c.Redirect(http.StatusSeeOther, "/logins")
 }
 
 func (ah *AuthHandler) logoutHandler(c echo.Context) error {

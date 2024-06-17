@@ -45,13 +45,7 @@ templ userTableHeaders() {
 }
 
 templ userTableRow(user db.Login, isManagement bool, loginId int32) {
-	<tr
-		hx-swap="transition:true"
-		hx-get={ fmt.Sprintf("/users/%d", user.ID) }
-		hx-target="body"
-		hx-push-url="true"
-		class="cursor-pointer hover:bg-base-200"
-	>
+	<tr class="hover:bg-base-200">
 		<td>
 			<div class="font-bold">{ fmt.Sprintf("%d",user.ID) }</div>
 		</td>
@@ -60,59 +54,19 @@ templ userTableRow(user db.Login, isManagement bool, loginId int32) {
 		</td>
 		<td>
 			if !user.IsManagement || user.ID == loginId {
-				<div class="grid grid-col-2">
-					<label class="flex flex-col justify-start gap-2 relative">
-						New Password:
-						<input
-							class="input input-bordered input-primary bg-slate-800"
-							type="password"
-							name="password"
-							required
-							minlength="6"
-							disabled?={ !isManagement }
-							if !isManagement {
-								value="disabled"
-							}
-						/>
-						<button
-							title="View password"
-							type="button"
-							disabled?={ !isManagement }
-							class="absolute top-12 right-3"
-							_="on click if [type of previous <input/>] == 'password' then remove [@type=password] from previous <input/> then hide #eye then remove .hidden from #eye-slash else show #eye then add .hidden to #eye-slash then tell previous <input/> toggle [@type=password] end"
-						>
-							<svg
-								id="eye"
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								fill="currentColor"
-								viewBox="0 0 16 16"
-							>
-								<path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"></path>
-								<path
-									d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"
-								></path>
-							</svg>
-							<svg
-								id="eye-slash"
-								class="hidden"
-								xmlns="http://www.w3.org/2000/svg"
-								width="16"
-								height="16"
-								fill="currentColor"
-								viewBox="0 0 16 16"
-							>
-								<path
-									d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z"
-								></path>
-								<path
-									d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"
-								></path>
-							</svg>
-						</button>
-					</label>
-					<button type="button" class="btn btn-ghost text-lg" hx-put={ fmt.Sprintf("/logins/%d/password", user.ID) } hx-include="[name='password']" hx-target="closest tr" hx-swap="outerHTML">Change</button>
+				<div class="flex flex-row gap-2" hx-disinherit="hx-get">
+					<input
+						class="input input-bordered input-primary bg-slate-800"
+						type="password"
+						name="password"
+						required
+						minlength="6"
+						disabled?={ !isManagement }
+						if !isManagement {
+							value="disabled"
+						}
+					/>
+					<button type="button" class="btn btn-ghost" hx-put={ fmt.Sprintf("/logins/%d/password", user.ID) } hx-include="[name='password']" hx-target="body" hx-swap="transition:true" hx-confirm="Are you sure you want to change the login password?">Change</button>
 				</div>
 			} else {
 				<span>Can't change other management users pwd</span>
