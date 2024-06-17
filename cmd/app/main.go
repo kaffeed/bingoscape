@@ -82,5 +82,5 @@ func main() {
 
 	handlers.SetupRoutes(e, ah, bh)
 
-	e.Logger.Fatal(e.StartAutoTLS(os.Getenv("HTTP_LISTEN_ADDR")))
+	e.Logger.Fatal(e.Start(os.Getenv("HTTP_LISTEN_ADDR")))
 }
