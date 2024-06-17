@@ -40,8 +40,9 @@ func main() {
 	godotenv.Load()
 	e := echo.New()
 	e.AutoTLSManager = autocert.Manager{
-		Prompt: autocert.AcceptTOS,
-		Cache:  autocert.DirCache("/var/www/.cache"),
+		HostPolicy: autocert.HostWhitelist("152.89.239.147"),
+		Prompt:     autocert.AcceptTOS,
+		Cache:      autocert.DirCache("/var/www/.cache"),
 	}
 
 	ctx := context.Background()
