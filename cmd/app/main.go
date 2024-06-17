@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func setupImageDirectories(path string) {
@@ -38,6 +39,10 @@ func setupImageDirectories(path string) {
 func main() {
 	godotenv.Load()
 	e := echo.New()
+	e.AutoTLSManager = autocert.Manager{
+		Prompt: autocert.AcceptTOS,
+		Cache:  autocert.DirCache("/var/www/.cache"),
+	}
 
 	ctx := context.Background()
 	connpool, err := pgxpool.New(ctx, os.Getenv("DB_URL"))
@@ -76,5 +81,5 @@ func main() {
 
 	handlers.SetupRoutes(e, ah, bh)
 
-	e.Logger.Fatal(e.Start(os.Getenv("HTTP_LISTEN_ADDR")))
+	e.Logger.Fatal(e.StartAutoTLS(os.Getenv("HTTP_LISTEN_ADDR")))
 }
