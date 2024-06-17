@@ -17,7 +17,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/crypto/acme/autocert"
 )
 
 func setupImageDirectories(path string) {
@@ -39,11 +38,11 @@ func setupImageDirectories(path string) {
 func main() {
 	godotenv.Load()
 	e := echo.New()
-	e.AutoTLSManager = autocert.Manager{
-		HostPolicy: autocert.HostWhitelist("152.89.239.147"),
-		Prompt:     autocert.AcceptTOS,
-		Cache:      autocert.DirCache("/var/www/.cache"),
-	}
+	// e.AutoTLSManager = autocert.Manager{
+	// 	HostPolicy: autocert.HostWhitelist("152.89.239.147"),
+	// 	Prompt:     autocert.AcceptTOS,
+	// 	Cache:      autocert.DirCache("/var/www/.cache"),
+	// }
 
 	ctx := context.Background()
 	connpool, err := pgxpool.New(ctx, os.Getenv("DB_URL"))
