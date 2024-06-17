@@ -1,6 +1,6 @@
 package errors
 
-templ Error404(fromProtected bool) {
+templ Error404(isAuthenticated bool, reason error) {
 	<section class="flex flex-col items-center justify-center h-[100vh] gap-4">
 		<div class="items-center justify-center flex flex-col gap-4">
 			<h1 class="text-9xl font-extrabold text-gray-700 tracking-widest">
@@ -12,18 +12,19 @@ templ Error404(fromProtected bool) {
 		</div>
 		<p class="text-xs text-center md:text-sm text-gray-400">
 			The requested resource could not be found but may be available again in the future.
+			{ reason.Error() }
 		</p>
-		if !fromProtected {
+		if !isAuthenticated {
 			<a hx-swap="transition:true" href="/" class="btn btn-secondary btn-outline">
 				Go Home Page
 			</a>
 		} else {
 			<a
 				hx-swap="transition:true"
-				href="/todo/list"
+				href="/"
 				class="btn btn-secondary btn-outline"
 			>
-				Go Todo List Page
+				Go to home
 			</a>
 		}
 	</section>

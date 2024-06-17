@@ -217,7 +217,7 @@ func (q *Queries) DeleteLogin(ctx context.Context, id int32) error {
 }
 
 const getAllLogins = `-- name: GetAllLogins :many
-select id, name, is_management, password from public.logins
+select id, name, is_management, password from public.logins order by id asc
 `
 
 func (q *Queries) GetAllLogins(ctx context.Context) ([]Login, error) {

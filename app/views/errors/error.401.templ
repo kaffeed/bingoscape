@@ -2,7 +2,7 @@ package errors
 
 import "github.com/kaffeed/bingoscape/app/views/layout"
 
-templ Error401(fromProtected bool) {
+templ Error401(isAuthenticated bool, reason error) {
 	<section class="flex flex-col items-center justify-center h-[100vh] gap-4">
 		<div class="items-center justify-center flex flex-col gap-4">
 			<h1 class="text-9xl font-extrabold text-gray-700 tracking-widest">
@@ -13,7 +13,7 @@ templ Error401(fromProtected bool) {
 			</h2>
 		</div>
 		<p class="text-xs text-center md:text-sm text-gray-400">
-			Please provide valid credentials.
+			{ reason.Error() }
 		</p>
 		<a hx-swap="transition:true" href="/login" class="btn btn-secondary btn-outline">
 			Go Login Page

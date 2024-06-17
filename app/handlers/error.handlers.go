@@ -16,7 +16,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	}
 	c.Logger().Error(err)
 
-	var errorPage func(fp bool) templ.Component
+	var errorPage func(fp bool, reason error) templ.Component
 
 	switch code {
 	case 401:
@@ -38,6 +38,6 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 		isAuthenticated,
 		isManagement,
 		c.Get("ISERROR").(bool),
-		errorPage(isAuthenticated),
+		errorPage(isAuthenticated, err),
 	))
 }
