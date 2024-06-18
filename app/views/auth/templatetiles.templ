@@ -2,6 +2,7 @@ package auth
 
 import "github.com/kaffeed/bingoscape/app/views/layout"
 import "github.com/kaffeed/bingoscape/app/db"
+import "fmt"
 
 templ TemplateTiles(templates []db.TemplateTile) {
 	if len(templates) == 0 {
@@ -42,8 +43,9 @@ templ templateTableRow(t db.TemplateTile) {
 	<tr>
 		<td></td>
 		<td>{ t.Title }</td>
-		<td><img src={ t.Imagepath } alt={ t.Title } class="w-16 h-16 object-cover"/></td>
 		<td>{ t.Description }</td>
+		<td>{ fmt.Sprintf("%d", t.Weight) }</td>
+		<td><img src={ t.Imagepath } alt={ t.Title } class="w-16 h-16 object-cover"/></td>
 		<td></td>
 	</tr>
 }
@@ -52,8 +54,9 @@ templ tableHeaders() {
 	<tr>
 		<th></th>
 		<th>Title</th>
-		<th>image</th>
+		<th>Description</th>
 		<th>Weight</th>
+		<th>image</th>
 		<th></th>
 	</tr>
 }

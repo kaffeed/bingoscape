@@ -224,15 +224,21 @@ func (bs *BingoService) CreateBingo(b db.CreateBingoParams) (views.BingoDetailMo
 	qtx := bs.Store.WithTx(tx)
 
 	bingo, err := qtx.CreateBingo(context.Background(), b)
-
+	if err != nil {
+		return views.BingoDetailModel{}, err
+	}
 	tiles := make([]db.Tile, b.Rows*b.Cols)
 	for i := 0; i < int(b.Rows*b.Cols); i++ {
-		tiles[i], err = qtx.CreateTile(context.Background(), db.CreateTileParams{
+		tiles[i], err = qtx.CreateTile(context.TODO(), db.CreateTileParams{
 			Title:       fmt.Sprintf("Tile %d", i+1),
 			Imagepath:   "https://i.ibb.co/7N9Pjcs/image.png",
 			Description: fmt.Sprintf("This is tile %d", i),
 			BingoID:     bingo.ID,
+			Weight:      int32(1),
 		})
+		if err != nil {
+			return views.BingoDetailModel{}, err
+		}
 	}
 
 	if err := tx.Commit(context.Background()); err != nil {

@@ -534,10 +534,13 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 		}
 
 		t := db.UpdateTileParams{ // TODO: Read from config
-			ID:          int32(tileId),
-			Title:       c.FormValue("title"),
-			Description: c.FormValue("description"),
-			Imagepath:   f,
+			ID:        int32(tileId),
+			Imagepath: f,
+		}
+
+		err = echo.FormFieldBinder(c).String("title", &t.Title).String("description", &t.Description).Int32("weight", &t.Weight).BindError()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "error while binding form fields")
 		}
 
 		_, err = bh.BingoService.Store.UpdateTile(context.Background(), t)
@@ -556,6 +559,7 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 				Title:       t.Title,
 				Imagepath:   t.Imagepath,
 				Description: t.Description,
+				Weight:      t.Weight,
 			})
 		}
 

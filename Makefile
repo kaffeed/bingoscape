@@ -90,7 +90,7 @@ db-down:
 ## db-up: migrate database-up
 .PHONY: db-up
 db-up:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
+	GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
 
 ## db-mig-create: create new migration
 .PHONY: db-mig-create

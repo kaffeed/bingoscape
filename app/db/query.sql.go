@@ -134,29 +134,36 @@ func (q *Queries) CreateSubmissionImage(ctx context.Context, arg CreateSubmissio
 }
 
 const createTemplateTile = `-- name: CreateTemplateTile :one
-INSERT INTO template_tiles(title, imagepath, description) VALUES ($1, $2, $3) returning id, title, imagepath, description
+INSERT INTO template_tiles(title, imagepath, description, weight) VALUES ($1, $2, $3, $4) returning id, title, imagepath, description, weight
 `
 
 type CreateTemplateTileParams struct {
 	Title       string
 	Imagepath   string
 	Description string
+	Weight      int32
 }
 
 func (q *Queries) CreateTemplateTile(ctx context.Context, arg CreateTemplateTileParams) (TemplateTile, error) {
-	row := q.db.QueryRow(ctx, createTemplateTile, arg.Title, arg.Imagepath, arg.Description)
+	row := q.db.QueryRow(ctx, createTemplateTile,
+		arg.Title,
+		arg.Imagepath,
+		arg.Description,
+		arg.Weight,
+	)
 	var i TemplateTile
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
 		&i.Imagepath,
 		&i.Description,
+		&i.Weight,
 	)
 	return i, err
 }
 
 const createTile = `-- name: CreateTile :one
-INSERT INTO tiles(title, imagepath, description, bingo_id) VALUES ($1, $2, $3, $4) returning id, title, imagepath, description, bingo_id
+INSERT INTO tiles(title, imagepath, description, bingo_id, weight) VALUES ($1, $2, $3, $4, $5) returning id, title, imagepath, description, bingo_id, weight
 `
 
 type CreateTileParams struct {
@@ -164,6 +171,7 @@ type CreateTileParams struct {
 	Imagepath   string
 	Description string
 	BingoID     int32
+	Weight      int32
 }
 
 func (q *Queries) CreateTile(ctx context.Context, arg CreateTileParams) (Tile, error) {
@@ -172,6 +180,7 @@ func (q *Queries) CreateTile(ctx context.Context, arg CreateTileParams) (Tile, e
 		arg.Imagepath,
 		arg.Description,
 		arg.BingoID,
+		arg.Weight,
 	)
 	var i Tile
 	err := row.Scan(
@@ -180,6 +189,7 @@ func (q *Queries) CreateTile(ctx context.Context, arg CreateTileParams) (Tile, e
 		&i.Imagepath,
 		&i.Description,
 		&i.BingoID,
+		&i.Weight,
 	)
 	return i, err
 }
@@ -611,7 +621,7 @@ func (q *Queries) GetTemplateImagePath(ctx context.Context, id int32) (string, e
 }
 
 const getTemplateTiles = `-- name: GetTemplateTiles :many
-SELECT id, title, imagepath, description FROM template_tiles
+SELECT id, title, imagepath, description, weight FROM template_tiles
 `
 
 func (q *Queries) GetTemplateTiles(ctx context.Context) ([]TemplateTile, error) {
@@ -628,6 +638,7 @@ func (q *Queries) GetTemplateTiles(ctx context.Context) ([]TemplateTile, error) 
 			&i.Title,
 			&i.Imagepath,
 			&i.Description,
+			&i.Weight,
 		); err != nil {
 			return nil, err
 		}
@@ -640,7 +651,7 @@ func (q *Queries) GetTemplateTiles(ctx context.Context) ([]TemplateTile, error) 
 }
 
 const getTileById = `-- name: GetTileById :one
-SELECT id, title, imagepath, description, bingo_id FROM tiles WHERE id = $1
+SELECT id, title, imagepath, description, bingo_id, weight FROM tiles WHERE id = $1
 `
 
 func (q *Queries) GetTileById(ctx context.Context, id int32) (Tile, error) {
@@ -652,12 +663,13 @@ func (q *Queries) GetTileById(ctx context.Context, id int32) (Tile, error) {
 		&i.Imagepath,
 		&i.Description,
 		&i.BingoID,
+		&i.Weight,
 	)
 	return i, err
 }
 
 const getTilesForBingo = `-- name: GetTilesForBingo :many
-SELECT id, title, imagepath, description, bingo_id
+SELECT id, title, imagepath, description, bingo_id, weight
 FROM tiles 
 WHERE bingo_id = $1 ORDER BY id ASC
 `
@@ -677,6 +689,7 @@ func (q *Queries) GetTilesForBingo(ctx context.Context, bingoID int32) ([]Tile, 
 			&i.Imagepath,
 			&i.Description,
 			&i.BingoID,
+			&i.Weight,
 		); err != nil {
 			return nil, err
 		}
@@ -752,7 +765,7 @@ func (q *Queries) UpdateSubmissionState(ctx context.Context, arg UpdateSubmissio
 }
 
 const updateTile = `-- name: UpdateTile :one
-UPDATE tiles SET title = $2, imagepath = $3, description = $4 WHERE id = $1 returning id, title, imagepath, description, bingo_id
+UPDATE tiles SET title = $2, imagepath = $3, description = $4, weight = $5 WHERE id = $1 returning id, title, imagepath, description, bingo_id, weight
 `
 
 type UpdateTileParams struct {
@@ -760,6 +773,7 @@ type UpdateTileParams struct {
 	Title       string
 	Imagepath   string
 	Description string
+	Weight      int32
 }
 
 func (q *Queries) UpdateTile(ctx context.Context, arg UpdateTileParams) (Tile, error) {
@@ -768,6 +782,7 @@ func (q *Queries) UpdateTile(ctx context.Context, arg UpdateTileParams) (Tile, e
 		arg.Title,
 		arg.Imagepath,
 		arg.Description,
+		arg.Weight,
 	)
 	var i Tile
 	err := row.Scan(
@@ -776,6 +791,7 @@ func (q *Queries) UpdateTile(ctx context.Context, arg UpdateTileParams) (Tile, e
 		&i.Imagepath,
 		&i.Description,
 		&i.BingoID,
+		&i.Weight,
 	)
 	return i, err
 }

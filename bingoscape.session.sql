@@ -40,15 +40,15 @@ SELECT s.id, s.login_id, s.tile_id, s.date, s.state
 	FROM public.submissions s 
 	WHERE s.id = 1
 
+begin;
 drop table public.submission_images;
 drop table public.submissions;
 drop table public.tiles;
---drop table public.template_tiles;
+drop table public.template_tiles;
 drop table public.bingos_logins;
 drop table public.logins;
 drop table public.bingos;
-begin;
-drop table public.schema_migrations;
+drop table public.goose_db_version;
 commit;
 
 

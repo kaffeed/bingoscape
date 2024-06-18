@@ -105,6 +105,7 @@ type TemplateTile struct {
 	Title       string
 	Imagepath   string
 	Description string
+	Weight      int32
 }
 
 type Tile struct {
@@ -113,4 +114,5 @@ type Tile struct {
 	Imagepath   string
 	Description string
 	BingoID     int32
+	Weight      int32
 }
