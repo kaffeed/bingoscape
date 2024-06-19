@@ -144,6 +144,7 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 		tile.Title = templateTile.Title
 		tile.Description = templateTile.Description
 		tile.Imagepath = templateTile.Imagepath
+		tile.Weight = templateTile.Weight
 	}
 
 	tm := views.TileModel{
