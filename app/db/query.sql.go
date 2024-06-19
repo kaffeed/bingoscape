@@ -226,6 +226,15 @@ func (q *Queries) DeleteLogin(ctx context.Context, id int32) error {
 	return err
 }
 
+const deleteSubmission = `-- name: DeleteSubmission :exec
+delete from submissions where id = $1
+`
+
+func (q *Queries) DeleteSubmission(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteSubmission, id)
+	return err
+}
+
 const getAllLogins = `-- name: GetAllLogins :many
 select id, name, is_management, password from public.logins order by id asc
 `

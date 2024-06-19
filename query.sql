@@ -122,3 +122,6 @@ JOIN bingos_logins as bl on bl.login_id = l.id
 WHERE bl.bingo_id = $1 and s.state = 'Accepted'::SUBMISSIONSTATE
 GROUP BY l.name
 ORDER BY points desc;
+
+-- name: DeleteSubmission :exec
+delete from submissions where id = $1;

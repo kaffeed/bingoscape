@@ -51,17 +51,14 @@ drop table public.bingos;
 drop table public.goose_db_version;
 commit;
 
-
-
 SELECT s.id, s.login_id, l.name, s.tile_id, s.date, s.comment 
 	FROM public.Submissions s 
 	JOIN public.logins l ON l.id = s.login_id
-	WHERE tile_id = 1
+	WHERE tile_id = 1;
 
-
-SELECT path FROM public.submission_images WHERE submission_id = 38
+SELECT path FROM public.submission_images WHERE submission_id = 38;
 
 SELECT t.id, t.imagepath, t.description, t.bingo_id, s.id as submission_id, s.tile_id, s.date, s.login_id
 	FROM tiles t 
 JOIN submissions s ON s.tile_id = t.id
-	WHERE bingo_id = 1 ORDER BY t.id ASC
+	WHERE bingo_id = 1 ORDER BY t.id ASC;

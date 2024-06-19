@@ -76,7 +76,7 @@ ALTER TABLE IF EXISTS public.bingos_logins
     ADD FOREIGN KEY (login_id)
     REFERENCES public.logins (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE cascade
     NOT VALID;
 
 
@@ -92,7 +92,7 @@ ALTER TABLE IF EXISTS public.submissions
     ADD FOREIGN KEY (login_id)
     REFERENCES public.logins (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     NOT VALID;
 
 

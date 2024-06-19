@@ -292,6 +292,46 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
+func (bh *BingoHandler) handleDeleteSubmission(c echo.Context) error {
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		return fmt.Errorf("invalid type for key '%s'", mgmnt_key)
+	}
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	var tileId, submissionId int32
+	err := echo.PathParamsBinder(c).
+		Int32("tileId", &tileId).
+		Int32("submissionId", &submissionId).
+		BindError()
+
+	s, err := bh.BingoService.Store.GetSubmissionById(context.TODO(), submissionId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	uid, _ := c.Get(user_id_key).(int32)
+	if !isManagement && s.LoginID != uid {
+		setFlashmessages(c, "error", "can't delete another teams submission!")
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+	}
+
+	err = bh.BingoService.Store.DeleteSubmission(context.TODO(), s.ID)
+	if err != nil {
+		setFlashmessages(c, "error", "Could not delete submission")
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+	}
+
+	return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+}
+
 func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
