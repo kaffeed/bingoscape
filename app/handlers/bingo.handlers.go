@@ -67,6 +67,7 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+
 	participantTable := components.BingoTeams(isManagement, views.BingoDetailModel{
 		Bingo:                bingo,
 		Tiles:                []views.TileModel{},
@@ -336,11 +337,11 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		return err
 	}
 
-	if comment != "" {
+	if comment != "" && comment != "\n\n" { // FIXME: bleh
 		uid, ok := c.Get(user_id_key).(int32)
 
 		if ok {
-			err = bh.BingoService.Store.CreateSubmissionComment(context.Background(), db.CreateSubmissionCommentParams{
+			err = bh.BingoService.Store.CreateSubmissionComment(context.TODO(), db.CreateSubmissionCommentParams{
 				SubmissionID: int32(submissionId),
 				LoginID:      int32(uid),
 				Comment:      comment,
@@ -769,12 +770,16 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 		return err
 	}
 
+	l, err := bh.BingoService.Store.GetBingoLeaderboard(context.TODO(), int32(bingoId))
+
 	bingoView := components.BingoTeams(isManagement, views.BingoDetailModel{
 		Bingo:                bingo,
 		Tiles:                []views.TileModel{},
 		PossibleParticipants: possible,
 		Participants:         p,
+		Leaderboard:          l,
 	})
+	c.Response().Header().Add("HX-Trigger", "updateLeaderboard")
 	return render(c, bingoView)
 }
 
@@ -872,16 +877,20 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		return echo.ErrNotFound
 	}
 
+	l, _ := bh.BingoService.Store.GetBingoLeaderboard(context.TODO(), bingo.ID)
 	uid := c.Get(user_id_key).(int32)
 	bm := views.BingoDetailModel{
 		Bingo:                bingo,
 		Tiles:                tiles,
 		PossibleParticipants: possible,
 		Participants:         p,
+		Leaderboard:          l,
 	}
 
 	bingoView := authviews.BingoDetail(isManagement, bm, uid)
 	c.Set("ISERROR", false)
+
+	c.Response().Header().Add("HX-Trigger", "updateLeaderboard")
 
 	return render(c, authviews.BingoDetailIndex(
 		"| Bingo",

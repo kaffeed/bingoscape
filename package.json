@@ -4,7 +4,8 @@
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.11.1",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3"
+    "tailwindcss": "^3.4.3",
+    "esbuild": "^0.21.5"
   },
   "dependencies": {
     "@flaticon/flaticon-uicons": "^3.2.1"

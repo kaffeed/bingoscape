@@ -113,3 +113,12 @@ INSERT INTO tiles(title, imagepath, description, bingo_id, weight) VALUES ($1, $
 
 -- name: ToggleBingoState :one
 UPDATE bingos SET active = NOT active WHERE id = $1 returning active;
+
+-- name: GetBingoLeaderboard :many
+select l.name, sum(t.weight) as points from submissions s
+JOIN logins as l on l.id = s.login_id
+JOIN tiles as t ON s.tile_id = t.id
+JOIN bingos_logins as bl on bl.login_id = l.id
+WHERE bl.bingo_id = $1 and s.state = 'Accepted'::SUBMISSIONSTATE
+GROUP BY l.name
+ORDER BY points desc;

@@ -276,6 +276,41 @@ func (q *Queries) GetBingoById(ctx context.Context, id int32) (Bingo, error) {
 	return i, err
 }
 
+const getBingoLeaderboard = `-- name: GetBingoLeaderboard :many
+select l.name, sum(t.weight) as points from submissions s
+JOIN logins as l on l.id = s.login_id
+JOIN tiles as t ON s.tile_id = t.id
+JOIN bingos_logins as bl on bl.login_id = l.id
+WHERE bl.bingo_id = $1 and s.state = 'Accepted'::SUBMISSIONSTATE
+GROUP BY l.name
+ORDER BY points desc
+`
+
+type GetBingoLeaderboardRow struct {
+	Name   string
+	Points int64
+}
+
+func (q *Queries) GetBingoLeaderboard(ctx context.Context, bingoID int32) ([]GetBingoLeaderboardRow, error) {
+	rows, err := q.db.Query(ctx, getBingoLeaderboard, bingoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetBingoLeaderboardRow
+	for rows.Next() {
+		var i GetBingoLeaderboardRow
+		if err := rows.Scan(&i.Name, &i.Points); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getBingoParticipants = `-- name: GetBingoParticipants :many
 SELECT l.Id, l.name FROM public.logins l
 	JOIN bingos_logins bl ON l.id = bl.login_id

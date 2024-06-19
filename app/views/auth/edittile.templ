@@ -12,9 +12,8 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 			<figure><img src={ tm.Tile.Imagepath } class="tile-card-image justify-center" alt="Tile"/></figure>
 			<div class="card-body">
 				if !isManagement {
-					<h2 class="card-title">{ tm.Tile.Title } <span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d", tm.Tile.Weight) }</span></h2>
+					<h2 class="card-title">{ tm.Tile.Title } <span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d xp", tm.Tile.Weight) }</span></h2>
 					<p>{ tm.Tile.Description }</p>
-					<p>{}</p>
 				} else {
 					@EditTile(isManagement, tm)
 					<div hx-get="/tiles/templates"></div>
@@ -71,8 +70,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 			type="number"
 			name="weight"
 			class="input input-bordered input-primary bg-slate-800"
-			placeholder="5"
-			value="1"
+			value={ fmt.Sprintf("%d", tile.Weight) }
 			min="1"
 			required
 		/>

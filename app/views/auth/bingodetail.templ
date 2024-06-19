@@ -22,9 +22,22 @@ templ BingoDetail(isManagement bool, bingo views.BingoDetailModel, loginId int32
 		<div class="divider"></div>
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
 			@components.BingoTeams(isManagement, bingo)
+			if isManagement {
+				<div class="divider"></div>
+				<div class="mx-auto w-3/5 flex flex-col gap-8 text-center">
+					<canvas id="leaderboardChart"></canvas>
+				</div>
+				@chartData(bingo)
+			}
 		</section>
-		<div class="divider"></div>
 	</div>
+}
+
+templ chartData(bingo views.BingoDetailModel) {
+	@templ.JSONScript("leaderboardData", bingo.Leaderboard)
+	<script type="text/javascript">
+	htmx.trigger('body', 'updateLeaderboard')
+	</script>
 }
 
 templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {

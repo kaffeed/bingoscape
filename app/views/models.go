@@ -16,6 +16,7 @@ type BingoDetailModel struct {
 	Tiles                []TileModel
 	PossibleParticipants PossibleBingoParticipants
 	Participants         BingoParticipants
+	Leaderboard          []db.GetBingoLeaderboardRow
 }
 
 type TileModel struct {

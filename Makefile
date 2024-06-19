@@ -38,8 +38,8 @@ watch-assets:
 	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css --watch   
 
 # # run esbuild to generate the index.js bundle in watch mode.
-# watch-esbuild:
-# 	npx esbuild app/assets/index.js --bundle --outdir=public/assets --watch
+watch-esbuild:
+	@npx esbuild app/assets/index.js --bundle --outdir=public/assets --watch
 
 # watch for any js or css change in the assets/ folder, then reload the browser via templ proxy.
 sync_assets:
@@ -57,15 +57,16 @@ sync_assets:
 generate-code:
 	@go run github.com/a-h/templ/cmd/templ@latest generate -v
 	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css
+	@npx esbuild app/assets/index.js --bundle --outdir=public/assets
 
 build:
-	@make generate-code
+	@make generate-code 
 	@go build -o bin/bingoscape cmd/app/main.go
 	@echo "compiled you application with all its assets to a single binary => bin/bingoscape"
 
 # start the application in development
 dev:
-	@make -j5 templ server watch-assets sync_assets
+	@make -j5 templ server watch-assets watch-esbuild sync_assets
 
 ## test: run unit tests
 .PHONY: test
