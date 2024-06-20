@@ -53,7 +53,6 @@ sync_assets:
 
 # build the application for production. This will compile your app
 # to a single binary with all its assets embedded.
-#
 generate-code:
 	@go run github.com/a-h/templ/cmd/templ@latest generate -v
 	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css
@@ -91,10 +90,9 @@ db-down:
 ## db-up: migrate database-up
 .PHONY: db-up
 db-up:
-	GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
+	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
 
 ## db-mig-create: create new migration
 .PHONY: db-mig-create
 db-mig-create:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DB_URL) go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) -s create $(filter-out $@,$(MAKECMDGOALS)) sql
-
