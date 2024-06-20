@@ -55,7 +55,7 @@ INSERT INTO public.submissions (login_id, tile_id, state) values ($1, $2, $3) re
 INSERT INTO submission_images(path, submission_id) VALUES ($1, $2); 
 
 -- name: CreateTemplateTile :one
-INSERT INTO template_tiles(title, imagepath, description, weight) VALUES ($1, $2, $3, $4) returning *;
+INSERT INTO template_tiles(title, imagepath, description, weight, secondary_image_path) VALUES ($1, $2, $3, $4, $5) returning *;
 
 -- name: GetTemplateTiles :many
 SELECT * FROM template_tiles;
@@ -89,7 +89,7 @@ SELECT * FROM bingos WHERE id = $1;
 SELECT * FROM submissions WHERE id = $1;
 
 -- name: UpdateTile :one
-UPDATE tiles SET title = $2, imagepath = $3, description = $4, weight = $5 WHERE id = $1 returning *;
+UPDATE tiles SET title = $2, imagepath = $3, description = $4, weight = $5, secondary_image_path = $6 WHERE id = $1 returning *;
 
 -- name: GetTileById :one
 SELECT * FROM tiles WHERE id = $1;
@@ -109,7 +109,7 @@ INSERT INTO bingos_logins (login_id, bingo_id) VALUES ($1, $2);
 INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, active, codephrase) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: CreateTile :one
-INSERT INTO tiles(title, imagepath, description, bingo_id, weight) VALUES ($1, $2, $3, $4, $5) returning *;
+INSERT INTO tiles(title, imagepath, description, bingo_id, weight, secondary_image_path) VALUES ($1, $2, $3, $4, $5, $6) returning *;
 
 -- name: ToggleBingoState :one
 UPDATE bingos SET active = NOT active WHERE id = $1 returning active;

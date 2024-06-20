@@ -101,18 +101,20 @@ type SubmissionImage struct {
 }
 
 type TemplateTile struct {
-	ID          int32
-	Title       string
-	Imagepath   string
-	Description string
-	Weight      int32
+	ID                 int32
+	Title              string
+	Imagepath          string
+	Description        string
+	Weight             int32
+	SecondaryImagePath string
 }
 
 type Tile struct {
-	ID          int32
-	Title       string
-	Imagepath   string
-	Description string
-	BingoID     int32
-	Weight      int32
+	ID                 int32
+	Title              string
+	Imagepath          string
+	Description        string
+	BingoID            int32
+	Weight             int32
+	SecondaryImagePath string
 }

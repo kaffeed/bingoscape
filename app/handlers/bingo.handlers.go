@@ -145,6 +145,7 @@ func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 		tile.Description = templateTile.Description
 		tile.Imagepath = templateTile.Imagepath
 		tile.Weight = templateTile.Weight
+		tile.SecondaryImagePath = templateTile.SecondaryImagePath
 	}
 
 	tm := views.TileModel{
@@ -530,6 +531,30 @@ func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
 	return render(c, components.Submissions(isManagement, submissionMap, loc))
 }
 
+func handleFileUpload(c echo.Context, fn, hfn, tip string) string {
+	file, err := c.FormFile(fn)
+
+	var f string
+
+	if err != nil {
+		var imagePath string
+		err := echo.FormFieldBinder(c).String(hfn, &imagePath).BindError()
+		if err != nil {
+			f = tip
+		} else {
+			f = imagePath
+		}
+	} else {
+		f, err = util.SaveFile(file)
+
+		if err != nil {
+			f = tip
+		}
+	}
+
+	return f
+}
+
 func (bh *BingoHandler) handleTile(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
@@ -555,29 +580,13 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "PUT" {
-		file, err := c.FormFile("file")
-
-		var f string
-
-		if err != nil {
-			var imagePath string
-			err := echo.FormFieldBinder(c).String("imagepath", &imagePath).BindError()
-			if err != nil {
-				f = tile.Imagepath
-			} else {
-				f = imagePath
-			}
-		} else {
-			f, err = util.SaveFile(file)
-
-			if err != nil {
-				f = tile.Imagepath
-			}
-		}
+		primaryImage := handleFileUpload(c, "file", "imagepath", tile.Imagepath)
+		secondaryImage := handleFileUpload(c, "secondaryfile", "secondaryimage", tile.SecondaryImagePath)
 
 		t := db.UpdateTileParams{ // TODO: Read from config
-			ID:        int32(tileId),
-			Imagepath: f,
+			ID:                 int32(tileId),
+			Imagepath:          primaryImage,
+			SecondaryImagePath: secondaryImage,
 		}
 
 		err = echo.FormFieldBinder(c).String("title", &t.Title).String("description", &t.Description).Int32("weight", &t.Weight).BindError()
@@ -598,10 +607,11 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 
 		if c.FormValue("saveAsTemplate") == "on" {
 			_, _ = bh.BingoService.Store.CreateTemplateTile(context.Background(), db.CreateTemplateTileParams{
-				Title:       t.Title,
-				Imagepath:   t.Imagepath,
-				Description: t.Description,
-				Weight:      t.Weight,
+				Title:              t.Title,
+				Imagepath:          t.Imagepath,
+				Description:        t.Description,
+				Weight:             t.Weight,
+				SecondaryImagePath: t.SecondaryImagePath,
 			})
 		}
 

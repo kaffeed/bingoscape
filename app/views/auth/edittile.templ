@@ -8,11 +8,35 @@ import "github.com/kaffeed/bingoscape/app/db"
 
 templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 	<section class="mx-auto w-2/5 flex flex-col gap-8 text-center" id="editTileView">
+		<div class="mx-auto w-full flex">
+			<a href={ templ.URL(fmt.Sprintf("/bingos/%d", tm.BingoID)) } class="btn btn-sm md:btn-md gap-2 lg:gap-3">
+				<svg class="h-6 w-6 fill-current md:h-8 md:w-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+					<path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path>
+				</svg>
+				<div class="flex flex-col items-start"><span class="text-base-content/50 hidden text-xs font-normal md:block">Back</span> <span>Bingo</span></div>
+			</a>
+		</div>
 		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
-			<figure><img src={ tm.Tile.Imagepath } class="tile-card-image justify-center" alt="Tile"/></figure>
-			<div class="card-body">
+			<div class="carousel w-full">
+				<div id="slide1" class="carousel-item relative w-full">
+					<img src={ tm.Imagepath } class="w-full"/>
+					<div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+						<a href="#slide2" class="btn btn-circle">❮</a>
+						<a href="#slide2" class="btn btn-circle">❯</a>
+					</div>
+				</div>
+				<div id="slide2" class="carousel-item relative w-full">
+					<img src={ tm.SecondaryImagePath } class="w-full"/>
+					<div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+						<a href="#slide1" class="btn btn-circle">❮</a>
+						<a href="#slide1" class="btn btn-circle">❯</a>
+					</div>
+				</div>
+			</div>
+			<div class="card-body w-full flex flex-col">
 				if !isManagement {
-					<h2 class="card-title">{ tm.Tile.Title } <span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d xp", tm.Tile.Weight) }</span></h2>
+					<h2 class="card-title">{ tm.Tile.Title }</h2>
+					<span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d xp", tm.Tile.Weight) }</span>
 					<p>{ tm.Tile.Description }</p>
 				} else {
 					@EditTile(isManagement, tm)
@@ -76,11 +100,23 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 		/>
 	</label>
 	<label class="flex flex-col justify-start gap-2">
-		Image:
+		Header Image:
 		<input
 			class="file-input file-input-bordered w-full max-w-xs"
 			type="file"
 			name="file"
+			disabled?={ !isManagement }
+			if !isManagement {
+				value="disabled"
+			}
+		/>
+	</label>
+	<label class="flex flex-col justify-start gap-2">
+		Secondary image:
+		<input
+			class="file-input file-input-bordered w-full max-w-xs"
+			type="file"
+			name="secondaryfile"
 			disabled?={ !isManagement }
 			if !isManagement {
 				value="disabled"
@@ -97,6 +133,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 		/>
 	</label>
 	<input type="hidden" name="imagepath" value={ tile.Imagepath }/>
+	<input type="hidden" name="secondaryimage" value={ tile.SecondaryImagePath }/>
 }
 
 templ EditTile(isManagement bool, tm views.TileModel) {
