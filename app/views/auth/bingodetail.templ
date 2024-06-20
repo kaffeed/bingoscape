@@ -69,12 +69,10 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 		</div>
 		if isManagement {
 			<div class="hero w-full bg-base-200 py-12 px-4">
-				<div class="text-center">
-					<div class="w-full relative">
-						<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
-						<canvas id="leaderboardChart"></canvas>
-						@chartData(bingo)
-					</div>
+				<div class="w-full relative">
+					<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
+					<canvas id="leaderboardChart" class="w-full h-96"></canvas>
+					@chartData(bingo)
 				</div>
 			</div>
 		}
@@ -104,7 +102,7 @@ templ BingoStateButton(bingoId int32, ready bool) {
 templ tileView(isManagement bool, t views.TileModel, loginId int32) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer w-full relative border border-gray-500 border-rounded"
+		class="cursor-pointer w-full relative border-2 border-rounded border-primary hover:border-secondary"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
@@ -138,14 +136,14 @@ templ stats(isManagement bool, s views.TileStats) {
 				{ fmt.Sprintf("%d", s.Submitted) }
 			</div>
 		</div>
-		<div class="tooltip text-lg" data-tip="Accepted">
-			<div class="badge badge-success gap-2">
-				{ fmt.Sprintf("%d", s.Accepted) }
-			</div>
-		</div>
 		<div class="tooltip text-lg" data-tip="Requires User Action">
 			<div class="badge badge-warning gap-2">
 				{ fmt.Sprintf("%d", s.NeedReview) }
+			</div>
+		</div>
+		<div class="tooltip text-lg" data-tip="Accepted">
+			<div class="badge badge-success gap-2">
+				{ fmt.Sprintf("%d", s.Accepted) }
 			</div>
 		</div>
 	} else {
