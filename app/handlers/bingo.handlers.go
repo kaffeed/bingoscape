@@ -639,10 +639,10 @@ func (bh *BingoHandler) handleTile(c echo.Context) error {
 		if c.FormValue("saveAsTemplate") == "on" {
 			_, _ = bh.BingoService.Store.CreateTemplateTile(context.Background(), db.CreateTemplateTileParams{
 				Title:              t.Title,
-				Imagepath:          t.Imagepath,
+				Imagepath:          primaryImage,
 				Description:        t.Description,
 				Weight:             t.Weight,
-				SecondaryImagePath: t.SecondaryImagePath,
+				SecondaryImagePath: secondaryImage,
 			})
 		}
 
