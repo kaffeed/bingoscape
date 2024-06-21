@@ -51,12 +51,13 @@ jobs:
           ls -l
           for env in "bingoscape" "ascension" "okayjay";
           do
+            echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl stop $env
             if [ ! -d /var/www/$env ] ; then
               echo "${{ secrets.SUDO_PWD }}" | sudo -S mkdir -p /var/www/$env
             fi
 
             echo "${{ secrets.SUDO_PWD }}" | sudo -S cp ./bingoscape /var/www/$env/bingoscape
             echo "${{ secrets.SUDO_PWD }}" | sudo -S cp $HOME/.config/bingoscape/envs/$env.env /var/www/$env/.env
-            echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl restart $env
+            echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl start $env
             echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl status $env            
           done
