@@ -123,9 +123,9 @@ WHERE bl.bingo_id = $1 and s.state = 'Accepted'::SUBMISSIONSTATE
 GROUP BY l.name
 ORDER BY points desc;
 
--- name: DeleteSubmission :exec
+-- name: DeleteSubmissionById :exec
 delete from submissions where id = $1;
 
--- name: DeleteTemplate :exec
+-- name: DeleteTemplateById :exec
 delete from template_tiles where id = $1;
 

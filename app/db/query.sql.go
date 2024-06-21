@@ -232,21 +232,21 @@ func (q *Queries) DeleteLogin(ctx context.Context, id int32) error {
 	return err
 }
 
-const deleteSubmission = `-- name: DeleteSubmission :exec
+const deleteSubmissionById = `-- name: DeleteSubmissionById :exec
 delete from submissions where id = $1
 `
 
-func (q *Queries) DeleteSubmission(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteSubmission, id)
+func (q *Queries) DeleteSubmissionById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteSubmissionById, id)
 	return err
 }
 
-const deleteTemplate = `-- name: DeleteTemplate :exec
+const deleteTemplateById = `-- name: DeleteTemplateById :exec
 delete from template_tiles where id = $1
 `
 
-func (q *Queries) DeleteTemplate(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteTemplate, id)
+func (q *Queries) DeleteTemplateById(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteTemplateById, id)
 	return err
 }
 

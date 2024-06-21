@@ -102,7 +102,7 @@ func (bh *BingoHandler) handleDeleteTemplate(c echo.Context) error {
 		return echo.NewHTTPError(echo.ErrBadRequest.Code, err)
 	}
 
-	err = bh.BingoService.Store.DeleteTemplate(context.TODO(), tmplId)
+	err = bh.BingoService.Store.DeleteTemplateById(context.TODO(), tmplId)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
@@ -356,7 +356,7 @@ func (bh *BingoHandler) handleDeleteSubmission(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
 	}
 
-	err = bh.BingoService.Store.DeleteSubmission(context.TODO(), s.ID)
+	err = bh.BingoService.Store.DeleteSubmissionById(context.TODO(), s.ID)
 	if err != nil {
 		setFlashmessages(c, "error", "Could not delete submission")
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
