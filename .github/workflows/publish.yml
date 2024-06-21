@@ -49,7 +49,6 @@ jobs:
         script: |
           cd /var/www/deployments/bin
           ls -l
-          envs = ()
           for env in "bingoscape" "ascension" "okayjay";
           do
             if [ ! -d /var/www/$env ] ; then
