@@ -12,7 +12,7 @@ templ SubmissionForm(isManagement bool, tileId int32) {
 		hx-post={ fmt.Sprintf("/tiles/%d/submit", tileId) }
 	>
 		<label class="flex flex-col justify-start gap-2">
-			Submission images:
+			Submission images (paste from clipboard should work):
 			<input
 				class="file-input file-input-bordered w-full max-w-xs"
 				type="file"
