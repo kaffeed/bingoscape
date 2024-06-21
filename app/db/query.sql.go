@@ -241,6 +241,15 @@ func (q *Queries) DeleteSubmission(ctx context.Context, id int32) error {
 	return err
 }
 
+const deleteTemplate = `-- name: DeleteTemplate :exec
+delete from template_tiles where id = $1
+`
+
+func (q *Queries) DeleteTemplate(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteTemplate, id)
+	return err
+}
+
 const getAllLogins = `-- name: GetAllLogins :many
 select id, name, is_management, password from public.logins order by id asc
 `

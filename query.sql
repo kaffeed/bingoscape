@@ -125,3 +125,7 @@ ORDER BY points desc;
 
 -- name: DeleteSubmission :exec
 delete from submissions where id = $1;
+
+-- name: DeleteTemplate :exec
+delete from template_tiles where id = $1;
+

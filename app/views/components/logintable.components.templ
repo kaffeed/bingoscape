@@ -56,7 +56,7 @@ templ userTableRow(user db.Login, isManagement bool, loginId int32) {
 			if !user.IsManagement || user.ID == loginId {
 				<div class="flex flex-row gap-2" hx-disinherit="hx-get">
 					<input
-						class="input input-bordered input-primary bg-slate-800"
+						class="input input-bordered input-primary"
 						type="password"
 						name="password"
 						required

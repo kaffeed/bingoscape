@@ -25,6 +25,7 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	tileGroup.PUT("/submissions/:submissionId/:state", bingoHandlers.handlePutSubmissionStatus)
 	tileGroup.DELETE("/:tileId/submissions/:submissionId", bingoHandlers.handleDeleteSubmission)
 	tileGroup.GET("/templates", bingoHandlers.handleGetTemplateTiles)
+	tileGroup.DELETE("/templates/:templateId", bingoHandlers.handleDeleteTemplate)
 
 	// /* ↓ Protected Routes ↓ */
 	protectedGroup := e.Group("/bingos", authHandlers.authMiddleware)

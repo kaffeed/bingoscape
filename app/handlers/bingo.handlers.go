@@ -78,6 +78,37 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 	return render(c, participantTable)
 }
 
+func (bh *BingoHandler) handleDeleteTemplate(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Need to be authenticated")
+	}
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Errorf("invalid type for key '"+mgmnt_key+"'"))
+	}
+
+	if !isManagement {
+		return echo.NewHTTPError(echo.ErrForbidden.Code, fmt.Errorf("management only"))
+	}
+
+	var tmplId int32
+	err := echo.PathParamsBinder(c).Int32("templateId", &tmplId).BindError()
+	if err != nil {
+		return echo.NewHTTPError(echo.ErrBadRequest.Code, err)
+	}
+
+	err = bh.BingoService.Store.DeleteTemplate(context.TODO(), tmplId)
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+	return c.Redirect(http.StatusSeeOther, "/tiles/templates")
+}
+
 func (bh *BingoHandler) handleLoadFromTemplate(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
