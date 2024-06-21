@@ -1078,6 +1078,10 @@ func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
 		Name:        l.Name,
 	}
 
+	fmt.Printf("##################################################")
+	fmt.Printf("Model: #%v\n", m)
+	fmt.Printf("##################################################")
+
 	submissionView := authviews.TeamSubmissions(isManagement, m)
 
 	c.Set("ISERROR", false)
