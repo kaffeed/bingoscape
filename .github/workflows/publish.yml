@@ -38,8 +38,8 @@ jobs:
         key: '${{ secrets.SSH_PRIVATE_KEY }}'
         port: '${{ secrets.SSH_PORT }}'
         source: bin/
-        target: /var/www/bingoscape
-    - name: Restart-BingoScape-On-Server
+        target: /var/www/deployments
+    - name: Copy-To-Environments
       uses: appleboy/ssh-action@master
       with:
         host: '${{ secrets.SSH_HOST }}'
@@ -47,7 +47,17 @@ jobs:
         key: '${{ secrets.SSH_PRIVATE_KEY }}'
         port: '${{ secrets.SSH_PORT }}'
         script: |
-          cd /var/www/bingoscape
+          cd /var/www/deployments/bin
           ls -l
-          echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl restart bingoscape
-          echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl status bingoscape            
+          envs = ()
+          for env in "bingoscape" "ascension" "okayjay";
+          do
+            if [ ! -d /var/www/$env ] ; then
+              echo "${{ secrets.SUDO_PWD }}" | sudo -S mkdir -p /var/www/$env
+            fi
+
+            cp ./bingoscape /var/www/$env/bingoscape
+            cp $HOME/.config/bingoscape/envs/$env.env /var/www/$env/.env
+            echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl restart $env
+            echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl status $env            
+          done
