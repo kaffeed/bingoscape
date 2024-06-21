@@ -3650,8 +3650,8 @@ details.collapse summary::-webkit-details-marker {
   height: 20%;
 }
 
-.h-16 {
-  height: 4rem;
+.h-32 {
+  height: 8rem;
 }
 
 .h-4\/5 {
@@ -3686,16 +3686,16 @@ details.collapse summary::-webkit-details-marker {
   width: 33.333333%;
 }
 
-.w-16 {
-  width: 4rem;
-}
-
 .w-2\/5 {
   width: 40%;
 }
 
 .w-3\/5 {
   width: 60%;
+}
+
+.w-32 {
+  width: 8rem;
 }
 
 .w-4\/5 {
@@ -3992,11 +3992,6 @@ details.collapse summary::-webkit-details-marker {
 .bg-rose-700 {
   --tw-bg-opacity: 1;
   background-color: rgb(190 18 60 / var(--tw-bg-opacity));
-}
-
-.bg-slate-800 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(30 41 59 / var(--tw-bg-opacity));
 }
 
 .fill-current {

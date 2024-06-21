@@ -1,11 +1,10 @@
 package components
 
 import "fmt"
-import "time"
 import "github.com/kaffeed/bingoscape/app/db"
 import "github.com/kaffeed/bingoscape/app/views"
 
-templ Submissions(isManagement bool, s views.Submissions, loc *time.Location) {
+templ Submissions(isManagement bool, s views.Submissions) {
 	for key, val := range s {
 		for _, s := range val {
 			<div class="flex flex-row w-full">
@@ -17,46 +16,50 @@ templ Submissions(isManagement bool, s views.Submissions, loc *time.Location) {
 					</ul>
 				</div>
 			</div>
-			<div class="w-full">
-				<button
-					class="btn btn-warning pull-right"
-					hx-delete={ fmt.Sprintf("/tiles/%d/submissions/%d", s.TileID, s.ID) }
-					hx-target="body"
-					hx-swap="transition:true"
-					hx-push-url="true"
-					hx-confirm="Are you sure you want to delete this submission?"
-				>
-					Delete
-				</button>
-			</div>
-			@SubmissionHeader(isManagement, s, loc)
-			<div class="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
-				<div class="-m-1 flex flex-wrap md:-m-2">
-					for _, path := range s.Images {
-						<div class="flex w-1/3 flex-wrap">
-							<div class="w-full p-1 md:p-2">
-								<a
-									href={ templ.URL(path) }
-									target="_blank"
-								>
-									<img
-										alt="gallery"
-										class="block h-full w-full rounded-lg object-cover object-center"
-										src={ path }
-									/>
-								</a>
-							</div>
-						</div>
-					}
-				</div>
-			</div>
+			@Submission(isManagement, s)
 		}
 	}
 }
 
-templ SubmissionHeader(isManagement bool, s views.SubmissionData, loc *time.Location) {
+templ Submission(isManagement bool, s views.SubmissionData) {
+	<div class="w-full">
+		<button
+			class="btn btn-warning pull-right"
+			hx-delete={ fmt.Sprintf("/tiles/%d/submissions/%d", s.TileID, s.ID) }
+			hx-target="body"
+			hx-swap="transition:true"
+			hx-push-url="true"
+			hx-confirm="Are you sure you want to delete this submission?"
+		>
+			Delete
+		</button>
+	</div>
+	@SubmissionHeader(isManagement, s)
+	<div class="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
+		<div class="-m-1 flex flex-wrap md:-m-2">
+			for _, path := range s.Images {
+				<div class="flex w-1/3 flex-wrap">
+					<div class="w-full p-1 md:p-2">
+						<a
+							href={ templ.URL(path) }
+							target="_blank"
+						>
+							<img
+								alt="gallery"
+								class="block h-full w-full rounded-lg object-cover object-center"
+								src={ path }
+							/>
+						</a>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ SubmissionHeader(isManagement bool, s views.SubmissionData) {
 	<div id={ fmt.Sprintf("submissionHeader-%d", s.ID) } class="flex flex-col content-center gap-2">
-		@SubmissionComments(s.Comments, loc)
+		@SubmissionComments(s.Comments)
 		@SubmissionBadge(s.State, true)
 		if isManagement {
 			@SubmissionState(s)
@@ -102,7 +105,7 @@ templ SubmissionBadge(s db.Submissionstate, floatRight bool) {
 	}
 }
 
-templ comment(c db.GetCommentsForSubmissionRow, _ *time.Location) {
+templ comment(c db.GetCommentsForSubmissionRow) {
 	<div class="chat chat-start">
 		<div class="chat-header">
 			{ c.Managementuser }
@@ -114,12 +117,12 @@ templ comment(c db.GetCommentsForSubmissionRow, _ *time.Location) {
 	</div>
 }
 
-templ SubmissionComments(comments []db.GetCommentsForSubmissionRow, loc *time.Location) {
+templ SubmissionComments(comments []db.GetCommentsForSubmissionRow) {
 	<details class="collapse bg-base-200">
 		<summary class="collapse-title text-xl font-medium">{ fmt.Sprintf("Comments (%d)", len(comments)) }</summary>
 		<div class="collapse-content">
 			for _, c := range comments {
-				@comment(c, loc)
+				@comment(c)
 			}
 		</div>
 	</details>

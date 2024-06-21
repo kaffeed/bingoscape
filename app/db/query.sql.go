@@ -499,6 +499,22 @@ func (q *Queries) GetImagesForSubmission(ctx context.Context, submissionID int32
 	return items, nil
 }
 
+const getLoginById = `-- name: GetLoginById :one
+SELECT id, name, is_management, password FROM logins WHERE id = $1
+`
+
+func (q *Queries) GetLoginById(ctx context.Context, id int32) (Login, error) {
+	row := q.db.QueryRow(ctx, getLoginById, id)
+	var i Login
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IsManagement,
+		&i.Password,
+	)
+	return i, err
+}
+
 const getLoginByName = `-- name: GetLoginByName :one
 SELECT id, name, is_management, password FROM logins WHERE name = $1
 `
@@ -577,6 +593,59 @@ func (q *Queries) GetSubmissionIdForTileAndLogin(ctx context.Context, arg GetSub
 	var id int32
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getSubmissionsByBingoAndLogin = `-- name: GetSubmissionsByBingoAndLogin :many
+select bingos_logins.bingo_id, submissions.id, submissions.login_id, submissions.tile_id, submissions.date, submissions.state, tiles.id, tiles.title, tiles.imagepath, tiles.description, tiles.bingo_id, tiles.weight, tiles.secondary_image_path from submissions  
+join tiles on submissions.tile_id = tiles.id
+join bingos_logins on tiles.bingo_id = submissions.login_id
+where submissions.login_id = $1 and bingos_logins.bingo_id = $2
+ORDER BY tiles.id asc
+`
+
+type GetSubmissionsByBingoAndLoginParams struct {
+	LoginID int32
+	BingoID int32
+}
+
+type GetSubmissionsByBingoAndLoginRow struct {
+	BingoID    int32
+	Submission Submission
+	Tile       Tile
+}
+
+func (q *Queries) GetSubmissionsByBingoAndLogin(ctx context.Context, arg GetSubmissionsByBingoAndLoginParams) ([]GetSubmissionsByBingoAndLoginRow, error) {
+	rows, err := q.db.Query(ctx, getSubmissionsByBingoAndLogin, arg.LoginID, arg.BingoID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSubmissionsByBingoAndLoginRow
+	for rows.Next() {
+		var i GetSubmissionsByBingoAndLoginRow
+		if err := rows.Scan(
+			&i.BingoID,
+			&i.Submission.ID,
+			&i.Submission.LoginID,
+			&i.Submission.TileID,
+			&i.Submission.Date,
+			&i.Submission.State,
+			&i.Tile.ID,
+			&i.Tile.Title,
+			&i.Tile.Imagepath,
+			&i.Tile.Description,
+			&i.Tile.BingoID,
+			&i.Tile.Weight,
+			&i.Tile.SecondaryImagePath,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getSubmissionsForTile = `-- name: GetSubmissionsForTile :many

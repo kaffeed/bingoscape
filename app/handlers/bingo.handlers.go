@@ -440,7 +440,6 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 	}
 
 	c.Set("ISERROR", false)
-	loc := getLocation(c)
 
 	data := views.SubmissionData{
 		Submission: s,
@@ -448,7 +447,7 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		Images:     ip,
 	}
 
-	return render(c, components.SubmissionHeader(isManagement, data, loc))
+	return render(c, components.SubmissionHeader(isManagement, data))
 }
 
 func (bh *BingoHandler) handleTileSubmission(c echo.Context) error {
@@ -557,9 +556,8 @@ func (bh *BingoHandler) handleGetTileSubmissions(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	loc := getLocation(c)
 
-	return render(c, components.Submissions(isManagement, submissionMap, loc))
+	return render(c, components.Submissions(isManagement, submissionMap))
 }
 
 func handleFileUpload(c echo.Context, fn, hfn, tip string) string {
@@ -1012,4 +1010,86 @@ func (bh *BingoHandler) handleBingoState(c echo.Context) error {
 	}
 
 	return render(c, authviews.BingoStateButton(bingoId, bingoReady))
+}
+
+func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return echo.ErrForbidden // FIXME: is this the right way?
+	}
+
+	var bingoId, loginId int32
+	err := echo.
+		PathParamsBinder(c).
+		Int32("bingoId", &bingoId).
+		Int32("loginId", &loginId).
+		BindError()
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	submissions, err := bh.BingoService.Store.GetSubmissionsByBingoAndLogin(context.TODO(), db.GetSubmissionsByBingoAndLoginParams{
+		LoginID: loginId,
+		BingoID: bingoId,
+	})
+
+	if err != nil {
+		return echo.NewHTTPError(echo.ErrInternalServerError.Code, "could not load submissons")
+	}
+
+	sd := make([]views.SubmissionData, len(submissions))
+	for i, s := range submissions {
+		sc, err := bh.BingoService.Store.GetCommentsForSubmission(context.Background(), s.Submission.ID)
+		if err != nil {
+			c.Set("ISERROR", true)
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, "could not load submisson comments")
+		}
+
+		ip, err := bh.BingoService.Store.GetImagesForSubmission(context.Background(), s.Submission.ID)
+		if err != nil {
+			c.Set("ISERROR", true)
+			return echo.NewHTTPError(echo.ErrInternalServerError.Code, "could not load submisson images")
+		}
+
+		sd[i] = views.SubmissionData{
+			Submission: s.Submission,
+			Comments:   sc,
+			Images:     ip,
+			Tile:       s.Tile,
+		}
+	}
+
+	l, err := bh.BingoService.Store.GetLoginById(context.TODO(), loginId)
+	if err != nil {
+		c.Set("ISERROR", true)
+		return echo.NewHTTPError(echo.ErrInternalServerError.Code, "no login found")
+	}
+
+	m := views.TeamSubmissionModel{
+		Submissions: sd,
+		BingoID:     bingoId,
+		Name:        l.Name,
+	}
+
+	submissionView := authviews.TeamSubmissions(isManagement, m)
+
+	c.Set("ISERROR", false)
+
+	return render(c, authviews.TeamSubmissionsIndex(
+		"| Team Submissions",
+		"", // TODO: set someday
+		isAuthenticated,
+		isManagement,
+		c.Get("ISERROR").(bool),
+		getFlashmessages(c, "error"),
+		getFlashmessages(c, "success"),
+		submissionView,
+	))
 }

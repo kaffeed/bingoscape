@@ -7,6 +7,9 @@ INSERT INTO logins(password, name, is_management) VALUES($1, $2, $3) returning *
 -- name: GetLoginByName :one
 SELECT * FROM logins WHERE name = $1;
 
+-- name: GetLoginById :one
+SELECT * FROM logins WHERE id = $1;
+
 -- name: DeleteLogin :exec
 DELETE FROM logins WHERE id = $1;
 
@@ -129,3 +132,9 @@ delete from submissions where id = $1;
 -- name: DeleteTemplateById :exec
 delete from template_tiles where id = $1;
 
+-- name: GetSubmissionsByBingoAndLogin :many
+select bingos_logins.bingo_id, sqlc.embed(submissions), sqlc.embed(tiles) from submissions  
+join tiles on submissions.tile_id = tiles.id
+join bingos_logins on tiles.bingo_id = submissions.login_id
+where submissions.login_id = $1 and bingos_logins.bingo_id = $2
+ORDER BY tiles.id asc;

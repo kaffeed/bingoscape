@@ -1,0 +1,58 @@
+package auth
+
+import "github.com/kaffeed/bingoscape/app/views/layout"
+import "fmt"
+import "github.com/kaffeed/bingoscape/app/views"
+import "github.com/kaffeed/bingoscape/app/views/components"
+import "github.com/kaffeed/bingoscape/app/db"
+
+templ TeamSubmissions(isManagement bool, subs views.TeamSubmissionModel) {
+	<section class="mx-auto w-3/5 flex flex-col gap-8 text-center" id="editTileView">
+		<div class="mx-auto w-full flex">
+			<a href={ templ.URL(fmt.Sprintf("/bingos/%d", subs.BingoID)) } class="btn btn-sm md:btn-md gap-2 lg:gap-3">
+				<svg class="h-6 w-6 fill-current md:h-8 md:w-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+					<path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path>
+				</svg>
+				<div class="flex flex-col items-start"><span class="text-base-content/50 hidden text-xs font-normal md:block">Back</span> <span>Bingo</span></div>
+			</a>
+		</div>
+		<div class="w-full">
+			<h1 class="text-5xl font-bold leading-tight mb-8">Submission for Team { subs.Name }</h1>
+		</div>
+		<div class="divider"></div>
+		for _, ts := range subs.Submissions {
+			<div class="bg-primary-content">
+				@tileHeader(ts.Tile)
+				<div class="divider w-3/5 mx-auto"></div>
+				@components.Submission(isManagement, ts)
+				<div class="divider w-full"></div>
+			</div>
+		}
+	</section>
+}
+
+templ tileHeader(t db.Tile) {
+	<div class="flex flex-row w-full overflow-x-auto">
+		<div class="avatar">
+			<div class="mask mask-squircle w-32 h-32">
+				<img src={ t.Imagepath } alt="tile image"/>
+			</div>
+		</div>
+		<div class="mx-auto">
+			<h2 class="text-3xl font-bold leading-tight mb-8">{ t.Title }</h2>
+			<span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d xp", t.Weight) }</span>
+		</div>
+	</div>
+}
+
+templ TeamSubmissionsIndex(title string,
+	username string,
+	isAuthenticated bool,
+	isManagement bool,
+	isError bool,
+	errMsgs, sucMsgs []string,
+	cmp templ.Component) {
+	@layout.Base(title, username, isAuthenticated, isManagement, isError, errMsgs, sucMsgs) {
+		@cmp
+	}
+}

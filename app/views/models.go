@@ -6,11 +6,19 @@ type Submissions map[string][]SubmissionData
 type PossibleBingoParticipants []db.GetPossibleBingoParticipantsRow
 type BingoParticipants []db.GetBingoParticipantsRow
 
+type TeamSubmissionModel struct {
+	Submissions []SubmissionData
+	BingoID     int32
+	Name        string
+}
+
 type SubmissionData struct {
 	db.Submission
 	Comments []db.GetCommentsForSubmissionRow
 	Images   []string
+	Tile     db.Tile
 }
+
 type BingoDetailModel struct {
 	db.Bingo
 	Tiles                []TileModel

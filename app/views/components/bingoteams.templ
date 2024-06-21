@@ -42,24 +42,36 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 			</thead>
 			<tbody id="participants" class="justify-end">
 				for _, p := range b.Participants {
-					<tr>
-						<td>
-							{ p.Name }
-						</td>
-						if isManagement {
+					if isManagement {
+						<tr
+							class="hover cursor-pointer"
+							hx-swap="transition:true"
+							hx-get={ fmt.Sprintf("/bingos/%d/teams/%d/submissions", b.ID, p.ID) }
+							hx-target="body"
+							hx-push-url="true"
+						>
 							<td>
+								{ p.Name }
+							</td>
+							<td hx-disinherit="hx-get">
 								<button
 									hx-confirm="Are you sure you want to remove this participant?"
 									hx-delete={ fmt.Sprintf("/bingos/%d/participants/%d", b.ID, p.ID) }
 									hx-target="#bingoTeamsView"
-									hx-swap="outerHTML"
 									class="btn btn-ghost text-lg float-right"
 								>
 									Remove
 								</button>
 							</td>
-						}
-					</tr>
+						</tr>
+					} else {
+						<tr>
+							<td>
+								{ p.Name }
+							</td>
+							<th></th>
+						</tr>
+					}
 				}
 			</tbody>
 		</table>
