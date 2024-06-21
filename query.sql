@@ -133,7 +133,7 @@ delete from submissions where id = $1;
 delete from template_tiles where id = $1;
 
 -- name: GetSubmissionsByBingoAndLogin :many
-select bingos_logins.bingo_id, sqlc.embed(submissions), sqlc.embed(tiles) from submissions  
+select distinct bingos_logins.bingo_id, sqlc.embed(submissions), sqlc.embed(tiles) from submissions  
 join tiles on submissions.tile_id = tiles.id
 join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2

@@ -66,8 +66,8 @@ JOIN submissions s ON s.tile_id = t.id
 
 
 
-select bingos_logins.bingo_id, submissions.*, tiles.* from submissions  
+select distinct bingos_logins.bingo_id, submissions.*, tiles.* from submissions  
 join tiles on submissions.tile_id = tiles.id
 join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
-where submissions.login_id = 2 and bingos_logins.bingo_id = 1
-order by tiles.id asc
+where submissions.login_id = 12 and bingos_logins.bingo_id = 3 
+order by tiles.id asc;

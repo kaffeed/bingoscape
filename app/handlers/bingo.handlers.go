@@ -1035,10 +1035,13 @@ func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	submissions, err := bh.BingoService.Store.GetSubmissionsByBingoAndLogin(context.TODO(), db.GetSubmissionsByBingoAndLoginParams{
-		LoginID: loginId,
-		BingoID: bingoId,
-	})
+	submissions, err := bh.
+		BingoService.
+		Store.
+		GetSubmissionsByBingoAndLogin(context.TODO(), db.GetSubmissionsByBingoAndLoginParams{
+			LoginID: loginId,
+			BingoID: bingoId,
+		})
 
 	if err != nil {
 		return echo.NewHTTPError(echo.ErrInternalServerError.Code, "could not load submissons")
@@ -1077,10 +1080,6 @@ func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
 		BingoID:     bingoId,
 		Name:        l.Name,
 	}
-
-	fmt.Printf("##################################################")
-	fmt.Printf("Model: #%v\n", m)
-	fmt.Printf("##################################################")
 
 	submissionView := authviews.TeamSubmissions(isManagement, m)
 
