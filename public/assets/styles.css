@@ -1,6 +1,6 @@
 /*@import url('https://cdn-uicons.flaticon.com/2.4.0/uicons-regular-rounded/css/uicons-regular-rounded.css')*/
 
-/*! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com*/
+/*! tailwindcss v3.4.4 | MIT License | https://tailwindcss.com*/
 
 /*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
@@ -508,6 +508,10 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+* {
+  scrollbar-color: currentColor transparent;
+}
+
 :root {
   color-scheme: dark;
   --in: 72.06% 0.191 231.6;
@@ -808,6 +812,24 @@ html {
   }
 }
 
+.avatar {
+  position: relative;
+  display: inline-flex;
+}
+
+.avatar > div {
+  display: block;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+.avatar img {
+  height: 100%;
+  width: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
 .avatar.placeholder > div {
   display: flex;
   align-items: center;
@@ -896,6 +918,12 @@ html {
   .table tr.hover:nth-child(even):hover {
     --tw-bg-opacity: 1;
     background-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)));
+  }
+
+  .table-zebra tr.hover:hover,
+  .table-zebra tr.hover:nth-child(even):hover {
+    --tw-bg-opacity: 1;
+    background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
   }
 }
 
@@ -1755,6 +1783,15 @@ html {
   text-decoration-line: underline;
 }
 
+.mask {
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}
+
 .menu {
   display: flex;
   flex-direction: column;
@@ -1988,6 +2025,14 @@ html {
   color: var(--fallback-erc,oklch(var(--erc)/var(--tw-text-opacity)));
   --alert-bg: var(--fallback-er,oklch(var(--er)/1));
   --alert-bg-mix: var(--fallback-b1,oklch(var(--b1)/1));
+}
+
+.avatar-group :where(.avatar) {
+  overflow: hidden;
+  border-radius: 9999px;
+  border-width: 4px;
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-border-opacity)));
 }
 
 .badge-primary {
@@ -2782,6 +2827,11 @@ details.collapse summary::-webkit-details-marker {
   outline-offset: 2px;
 }
 
+.mask-squircle {
+  -webkit-mask-image: url("data:image/svg+xml,%3csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M100 0C20 0 0 20 0 100s20 100 100 100 100-20 100-100S180 0 100 0Z'/%3e%3c/svg%3e");
+          mask-image: url("data:image/svg+xml,%3csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M100 0C20 0 0 20 0 100s20 100 100 100 100-20 100-100S180 0 100 0Z'/%3e%3c/svg%3e");
+}
+
 :where(.menu li:empty) {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-bc,oklch(var(--bc)/var(--tw-bg-opacity)));
@@ -3377,6 +3427,40 @@ details.collapse summary::-webkit-details-marker {
   left: 50%;
   right: auto;
   bottom: var(--tooltip-offset);
+}
+
+.avatar.online:before {
+  content: "";
+  position: absolute;
+  z-index: 10;
+  display: block;
+  border-radius: 9999px;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-su,oklch(var(--su)/var(--tw-bg-opacity)));
+  outline-style: solid;
+  outline-width: 2px;
+  outline-color: var(--fallback-b1,oklch(var(--b1)/1));
+  width: 15%;
+  height: 15%;
+  top: 7%;
+  right: 7%;
+}
+
+.avatar.offline:before {
+  content: "";
+  position: absolute;
+  z-index: 10;
+  display: block;
+  border-radius: 9999px;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
+  outline-style: solid;
+  outline-width: 2px;
+  outline-color: var(--fallback-b1,oklch(var(--b1)/1));
+  width: 15%;
+  height: 15%;
+  top: 7%;
+  right: 7%;
 }
 
 .card-compact .card-body {
@@ -3987,6 +4071,11 @@ details.collapse summary::-webkit-details-marker {
 .bg-neutral {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
+}
+
+.bg-primary-content {
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-pc,oklch(var(--pc)/var(--tw-bg-opacity)));
 }
 
 .bg-rose-700 {

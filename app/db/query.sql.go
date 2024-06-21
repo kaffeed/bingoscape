@@ -598,7 +598,7 @@ func (q *Queries) GetSubmissionIdForTileAndLogin(ctx context.Context, arg GetSub
 const getSubmissionsByBingoAndLogin = `-- name: GetSubmissionsByBingoAndLogin :many
 select bingos_logins.bingo_id, submissions.id, submissions.login_id, submissions.tile_id, submissions.date, submissions.state, tiles.id, tiles.title, tiles.imagepath, tiles.description, tiles.bingo_id, tiles.weight, tiles.secondary_image_path from submissions  
 join tiles on submissions.tile_id = tiles.id
-join bingos_logins on tiles.bingo_id = submissions.login_id
+join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2
 ORDER BY tiles.id asc
 `
