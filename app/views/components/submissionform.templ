@@ -16,7 +16,9 @@ templ SubmissionForm(isManagement bool, tileId int32) {
 			<input
 				class="file-input file-input-bordered w-full max-w-xs"
 				type="file"
+				id="submissionFilesInput"
 				name="files"
+				placeholder="Upload files (copy-paste works)"
 				required
 				multiple
 			/>
@@ -27,4 +29,17 @@ templ SubmissionForm(isManagement bool, tileId int32) {
 			</button>
 		</footer>
 	</form>
+	<script>
+	const fileInput = document.getElementById("submissionFilesInput")
+document.addEventListener('paste', async (e) => {
+  // Prevent the default behavior, so you can code your own logic.
+  e.preventDefault();
+  if (!e.clipboardData.files.length) {
+    return;
+  }
+  // Iterate over all pasted files.
+  fileInput.files = e.clipboardData.files;
+  })
+
+	</script>
 }
