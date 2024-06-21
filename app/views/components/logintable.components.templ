@@ -23,12 +23,12 @@ templ LoginTable(isManagement bool, users []db.Login, loginId int32) {
 			<footer class="card-actions justify-end">
 				<button
 					hx-swap="transition:true"
-					hx-get="/logins/register"
+					hx-get="/logins/create"
 					hx-target="body"
 					hx-push-url="true"
 					class="btn btn-ghost text-lg rs"
 				>
-					New user
+					Create Login
 				</button>
 			</footer>
 		}
