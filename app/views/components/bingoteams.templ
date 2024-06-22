@@ -54,10 +54,10 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 							<td>
 								{ p.Name }
 							</td>
-							<td class="flex flex-col">
-								<p class="flex flex-row gap-2"># Submitted: <span class="badge badge-info">{ fmt.Sprintf("%d", stats.Submitted) }</span></p>
-								<p class="flex flex-row gap-2"># Need Action: <span class="badge badge-warning gap-2">{ fmt.Sprintf("%d", stats.NeedsAction) }</span></p>
-								<p class="flex flex-row gap-2"># Accepted: <span class="badge badge-success gap-2">{ fmt.Sprintf("%d", stats.Accepted) }</span></p>
+							<td class="grid grid-cols-[auto,1fr] gap-2">
+								<span># Submitted:</span><span class="badge badge-info">{ fmt.Sprintf("%d", stats.Submitted) }</span>
+								<span># Need Action:</span><span class="badge badge-warning">{ fmt.Sprintf("%d", stats.NeedsAction) }</span>
+								<span># Accepted:</span><span class="badge badge-success">{ fmt.Sprintf("%d", stats.Accepted) }</span>
 							</td>
 							<td hx-disinherit="hx-get">
 								<button

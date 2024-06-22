@@ -3897,6 +3897,10 @@ details.collapse summary::-webkit-details-marker {
   grid-template-columns: repeat(9, minmax(0, 1fr));
 }
 
+.grid-cols-\[auto\2c 1fr\] {
+  grid-template-columns: auto 1fr;
+}
+
 .grid-rows-1 {
   grid-template-rows: repeat(1, minmax(0, 1fr));
 }
