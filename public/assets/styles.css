@@ -1,6 +1,6 @@
 /*@import url('https://cdn-uicons.flaticon.com/2.4.0/uicons-regular-rounded/css/uicons-regular-rounded.css')*/
 
-/*! tailwindcss v3.4.4 | MIT License | https://tailwindcss.com*/
+/*! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com*/
 
 /*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
@@ -506,10 +506,6 @@ video {
 
 html {
   -webkit-tap-highlight-color: transparent;
-}
-
-* {
-  scrollbar-color: currentColor transparent;
 }
 
 :root {
@@ -4071,11 +4067,6 @@ details.collapse summary::-webkit-details-marker {
 .bg-neutral {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-n,oklch(var(--n)/var(--tw-bg-opacity)));
-}
-
-.bg-primary-content {
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-pc,oklch(var(--pc)/var(--tw-bg-opacity)));
 }
 
 .bg-rose-700 {

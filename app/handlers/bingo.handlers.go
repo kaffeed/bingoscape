@@ -11,7 +11,6 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -49,8 +48,8 @@ func (bh *BingoHandler) handleGetBingoParticipationTable(c echo.Context) error {
 
 	isManagement, _ := c.Get(mgmnt_key).(bool)
 
-	var bingoId int
-	echo.PathParamsBinder(c).Int("bingoId", &bingoId)
+	var bingoId int32
+	echo.PathParamsBinder(c).Int32("bingoId", &bingoId)
 
 	bingo, err := bh.BingoService.GetBingo(bingoId)
 
@@ -809,8 +808,8 @@ func (bh *BingoHandler) handleGetAllBingos(c echo.Context) error {
 }
 
 func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
-	var bingoId int
-	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
+	var bingoId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).BindError()
 
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
@@ -830,8 +829,8 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 	}
 
 	if c.Request().Method == "POST" {
-		var pId int
-		err := echo.FormFieldBinder(c).Int("team", &pId).BindError()
+		var pId int32
+		err := echo.FormFieldBinder(c).Int32("team", &pId).BindError()
 		if err != nil {
 			log.Printf("Error during getting team id")
 			return err
@@ -864,15 +863,11 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 }
 
 func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
-	var bingoId int
-	err := echo.PathParamsBinder(c).Int("bingoId", &bingoId).BindError()
+	var bingoId, pId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).Int32("pId", &pId).BindError()
 
 	if err != nil {
-		return errors.New("can't parse bingoId from params")
-	}
-	pId, err := strconv.Atoi(c.Param("pId"))
-	if err != nil {
-		return errors.New("can't parse participationId from params")
+		return echo.ErrBadRequest
 	}
 
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
@@ -919,10 +914,10 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 }
 
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
-	var bingoId int
+	var bingoId int32
 	err := echo.
 		PathParamsBinder(c).
-		Int("bingoId", &bingoId).
+		Int32("bingoId", &bingoId).
 		BindError()
 
 	if err != nil {

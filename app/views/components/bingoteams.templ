@@ -36,12 +36,13 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 				<tr>
 					<th>Team</th>
 					if isManagement {
+						<th>Stats</th>
 						<th class="float-right"></th>
 					}
 				</tr>
 			</thead>
 			<tbody id="participants" class="justify-end">
-				for _, p := range b.Participants {
+				for p, stats := range b.Participants {
 					if isManagement {
 						<tr
 							class="hover cursor-pointer"
@@ -52,6 +53,11 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 						>
 							<td>
 								{ p.Name }
+							</td>
+							<td class="flex flex-col">
+								<p class="flex flex-row gap-2"># Submitted: <span class="badge badge-info">{ fmt.Sprintf("%d", stats.Submitted) }</span></p>
+								<p class="flex flex-row gap-2"># Need Action: <span class="badge badge-warning gap-2">{ fmt.Sprintf("%d", stats.NeedsAction) }</span></p>
+								<p class="flex flex-row gap-2"># Accepted: <span class="badge badge-success gap-2">{ fmt.Sprintf("%d", stats.Accepted) }</span></p>
 							</td>
 							<td hx-disinherit="hx-get">
 								<button

@@ -118,12 +118,29 @@ func (bs *BingoService) CreateSubmission(tileId int, loginId int32, filePaths []
 	return err
 }
 
-func (bs *BingoService) GetPossibleParticipants(bingoId int) (views.PossibleBingoParticipants, error) {
-	return bs.Store.GetPossibleBingoParticipants(context.Background(), int32(bingoId))
+func (bs *BingoService) GetPossibleParticipants(bingoId int32) (views.PossibleBingoParticipants, error) {
+	return bs.Store.GetPossibleBingoParticipants(context.Background(), bingoId)
 }
 
-func (bs *BingoService) GetParticipants(bingoId int) (views.BingoParticipants, error) {
-	return bs.Store.GetBingoParticipants(context.Background(), int32(bingoId))
+func (bs *BingoService) GetParticipants(bingoId int32) (views.BingoParticipants, error) {
+	bp, err := bs.Store.GetBingoParticipants(context.Background(), int32(bingoId))
+	if err != nil {
+		return nil, err
+	}
+	bps := views.BingoParticipants{}
+	for _, p := range bp {
+		stats, err := bs.Store.GetStatsByLoginAndBingo(context.TODO(), db.GetStatsByLoginAndBingoParams{
+			LoginID: p.ID,
+			BingoID: bingoId,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+		bps[p] = stats
+	}
+
+	return bps, nil
 }
 
 func (bs *BingoService) GetBingos(isManagement bool, userId int32) ([]db.Bingo, error) {
@@ -133,8 +150,8 @@ func (bs *BingoService) GetBingos(isManagement bool, userId int32) ([]db.Bingo, 
 	return bs.Store.GetBingosForLogin(context.Background(), userId)
 }
 
-func (bs *BingoService) GetBingo(bingoId int) (db.Bingo, error) {
-	return bs.Store.GetBingoById(context.Background(), int32(bingoId))
+func (bs *BingoService) GetBingo(bingoId int32) (db.Bingo, error) {
+	return bs.Store.GetBingoById(context.Background(), bingoId)
 }
 
 func (bs *BingoService) loadSubmissionById(submissionId int) (db.Submission, error) {
@@ -152,7 +169,7 @@ func (bs *BingoService) LoadTile(id int) (db.Tile, error) {
 	return bs.Store.GetTileById(context.Background(), int32(id))
 }
 
-func (bs *BingoService) LoadTilesForBingo(bingoId int) ([]views.TileModel, error) {
+func (bs *BingoService) LoadTilesForBingo(bingoId int32) ([]views.TileModel, error) {
 	tiles, err := bs.Store.GetTilesForBingo(context.Background(), int32(bingoId))
 	if err != nil {
 		return nil, err
@@ -202,16 +219,16 @@ func (bs *BingoService) LoadTilesForBingo(bingoId int) ([]views.TileModel, error
 	return res, nil
 }
 
-func (bs *BingoService) RemoveParticipation(pId, bId int) error {
+func (bs *BingoService) RemoveParticipation(pId, bId int32) error {
 	return bs.Store.DeleteBingoParticipant(context.Background(), db.DeleteBingoParticipantParams{
-		LoginID: int32(pId),
-		BingoID: int32(bId),
+		LoginID: pId,
+		BingoID: bId,
 	})
 }
-func (bs *BingoService) AddParticipantToBingo(pId, bId int) error {
+func (bs *BingoService) AddParticipantToBingo(pId, bId int32) error {
 	return bs.Store.CreateBingoParticipant(context.Background(), db.CreateBingoParticipantParams{
-		LoginID: int32(pId),
-		BingoID: int32(bId),
+		LoginID: pId,
+		BingoID: bId,
 	})
 }
 

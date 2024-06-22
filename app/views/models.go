@@ -4,7 +4,7 @@ import "github.com/kaffeed/bingoscape/app/db"
 
 type Submissions map[string][]SubmissionData
 type PossibleBingoParticipants []db.GetPossibleBingoParticipantsRow
-type BingoParticipants []db.GetBingoParticipantsRow
+type BingoParticipants map[db.GetBingoParticipantsRow]db.GetStatsByLoginAndBingoRow
 
 type TeamSubmissionModel struct {
 	Submissions []SubmissionData

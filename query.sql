@@ -138,3 +138,11 @@ join tiles on submissions.tile_id = tiles.id
 join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2
 ORDER BY tiles.id asc;
+
+-- name: GetStatsByLoginAndBingo :one
+select count(case when state = 'Submitted'::SUBMISSIONSTATE THEN 1 END) as submitted,
+       count(case when state = 'ActionRequired'::SUBMISSIONSTATE THEN 1 END) as needs_action,
+	   count(case when state = 'Accepted'::SUBMISSIONSTATE THEN 1 END) as accepted
+from submissions 
+JOIN bingos_logins ON bingos_logins.login_id = submissions.login_id
+where submissions.login_id = $1 and bingos_logins.bingo_id = $2;

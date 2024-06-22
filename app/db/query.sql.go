@@ -562,6 +562,33 @@ func (q *Queries) GetPossibleBingoParticipants(ctx context.Context, bingoID int3
 	return items, nil
 }
 
+const getStatsByLoginAndBingo = `-- name: GetStatsByLoginAndBingo :one
+select count(case when state = 'Submitted'::SUBMISSIONSTATE THEN 1 END) as submitted,
+       count(case when state = 'ActionRequired'::SUBMISSIONSTATE THEN 1 END) as needs_action,
+	   count(case when state = 'Accepted'::SUBMISSIONSTATE THEN 1 END) as accepted
+from submissions 
+JOIN bingos_logins ON bingos_logins.login_id = submissions.login_id
+where submissions.login_id = $1 and bingos_logins.bingo_id = $2
+`
+
+type GetStatsByLoginAndBingoParams struct {
+	LoginID int32
+	BingoID int32
+}
+
+type GetStatsByLoginAndBingoRow struct {
+	Submitted   int64
+	NeedsAction int64
+	Accepted    int64
+}
+
+func (q *Queries) GetStatsByLoginAndBingo(ctx context.Context, arg GetStatsByLoginAndBingoParams) (GetStatsByLoginAndBingoRow, error) {
+	row := q.db.QueryRow(ctx, getStatsByLoginAndBingo, arg.LoginID, arg.BingoID)
+	var i GetStatsByLoginAndBingoRow
+	err := row.Scan(&i.Submitted, &i.NeedsAction, &i.Accepted)
+	return i, err
+}
+
 const getSubmissionById = `-- name: GetSubmissionById :one
 SELECT id, login_id, tile_id, date, state FROM submissions WHERE id = $1
 `
