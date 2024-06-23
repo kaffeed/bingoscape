@@ -29,17 +29,17 @@ templ SubmissionForm(isManagement bool, tileId int32) {
 			</button>
 		</footer>
 	</form>
-	<script>
-	const fileInput = document.getElementById("submissionFilesInput")
-document.addEventListener('paste', async (e) => {
-  // Prevent the default behavior, so you can code your own logic.
-  e.preventDefault();
-  if (!e.clipboardData.files.length) {
-    return;
-  }
-  // Iterate over all pasted files.
-  fileInput.files = e.clipboardData.files;
-  })
+	<script defer>
+	   document.addEventListener('paste', async (e) => {
+			   const fileInput = document.getElementById("submissionFilesInput")
+			   // Prevent the default behavior, so you can code your own logic.
+			   e.preventDefault();
+			   if (!e.clipboardData.files.length) {
+			   return;
+			   }
+			   // Iterate over all pasted files.
+			   fileInput.files = e.clipboardData.files;
+			   })
 
 	</script>
 }
