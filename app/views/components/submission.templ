@@ -30,6 +30,7 @@ templ Submission(isManagement bool, s views.SubmissionData) {
 			"py-2",
 			"lg:px-32",
 			"lg:pt-12",
+			"gap-2",
 			"border-2",
 			"border-rounded",
 			templ.KV("border-primary", s.State == db.SubmissionstateSubmitted),
