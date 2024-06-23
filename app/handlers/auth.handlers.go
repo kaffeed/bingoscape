@@ -157,6 +157,18 @@ func (ah *AuthHandler) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// fromProtected = true
 		c.Set("ISAUTHENTICATED", true)
 
+		req := c.Request()
+		res := c.Response()
+
+		// Renew session expiry
+		sess.Options.MaxAge = 86400 * 7 // 7 days
+
+		// Save the session
+		err := sess.Save(req, res)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+
 		return next(c)
 	}
 }
@@ -215,7 +227,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		sess, _ := session.Get(auth_sessions_key, c)
 		sess.Options = &sessions.Options{
 			Path:     "/",
-			MaxAge:   3600, // in seconds
+			MaxAge:   86400 * 7, // in seconds
 			HttpOnly: true,
 		}
 
