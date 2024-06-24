@@ -36,7 +36,6 @@ templ CreateUser(isManagement bool) {
 						type="password"
 						name="password"
 						required
-						minlength="6"
 						disabled?={ !isManagement }
 						if !isManagement {
 							value="disabled"
