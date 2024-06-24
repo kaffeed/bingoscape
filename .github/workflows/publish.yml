@@ -49,7 +49,7 @@ jobs:
         script: |
           cd /var/www/deployments/bin
           ls -l
-          for env in "bingoscape" "ascension" "okayjay" "echoofsilence" "volition";
+          for env in "bingoscape" "ascension" "affliction" "echoofsilence" "volition";
           do
             echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl stop $env
             if [ ! -d /var/www/$env ] ; then

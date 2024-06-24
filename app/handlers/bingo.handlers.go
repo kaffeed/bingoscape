@@ -409,7 +409,7 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		return err
 	}
 
-	if comment != "" && comment != "\n\n" { // FIXME: bleh
+	if !util.IsEmptyOrWhitespace(comment) { // FIXME: bleh
 		uid, ok := c.Get(user_id_key).(int32)
 
 		if ok {
