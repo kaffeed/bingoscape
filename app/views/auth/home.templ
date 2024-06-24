@@ -3,9 +3,9 @@ package auth
 import "github.com/kaffeed/bingoscape/app/views/layout"
 
 templ Home(isAuthenticated bool) {
-	<section class="mx-auto w-fit flex flex-col gap-8 text-center">
-		<h1 class="text-5xl font-bold rs">BingoScape</h1>
-		<p class="text-2xl font-thin rs">
+	<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
+		<h1 class="text-5xl font-bold mx-auto rs">BingoScape</h1>
+		<p class="text-2xl font-thin mx-auto rs">
 			RuneScape Bingo made ez
 		</p>
 		if !isAuthenticated {

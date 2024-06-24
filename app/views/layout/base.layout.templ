@@ -34,6 +34,7 @@ templ Base(title, username string, isAuthenticated, isManagement, isError bool, 
 			<main class={ templ.KV("pt-40", !isError) }>
 				{ children... }
 				@components.FlashMessages(errMsgs, sucMsgs)
+				<div class="divider"></div>
 			</main>
 			<footer class="footer items-center p-4 bg-neutral text-neutral-content">
 				<aside class="items-center grid-flow-col">
