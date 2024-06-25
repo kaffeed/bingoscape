@@ -4,26 +4,32 @@ import "fmt"
 import "github.com/kaffeed/bingoscape/app/views"
 
 templ BingoTeams(isManagement bool, bingo views.BingoDetailModel) {
-	<div class="overflow-x-auto" id="bingoTeamsView">
-		@ParticipantsTable(isManagement, bingo)
-		if isManagement {
-			<div class="divider"></div>
-			<footer class="card-actions justify-end">
-				<select
-					hx-post={ fmt.Sprintf("/bingos/%d/participants", bingo.ID) }
-					hx-target="#bingoTeamsView"
-					hx-trigger="change"
-					hx-swap="outerHTML"
-					name="team"
-					class="select select-bordered w-full max-w-xs"
-				>
-					<option disabled selected>Add a team</option>
-					for _, p := range bingo.PossibleParticipants {
-						<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
-					}
-				</select>
-			</footer>
-		}
+	<div class="collapse bg-base-200" id="bingoTeamsView">
+		<input type="checkbox"/>
+		<div class="collapse-title text-xl font-medium">Teams</div>
+		<div class="collapse-content">
+			<div class="overflow-x-auto">
+				@ParticipantsTable(isManagement, bingo)
+				if isManagement {
+					<div class="divider"></div>
+					<footer class="card-actions justify-end">
+						<select
+							hx-post={ fmt.Sprintf("/bingos/%d/participants", bingo.ID) }
+							hx-target="#bingoTeamsView"
+							hx-trigger="change"
+							hx-swap="outerHTML"
+							name="team"
+							class="select select-bordered w-full max-w-xs"
+						>
+							<option disabled selected>Add a team</option>
+							for _, p := range bingo.PossibleParticipants {
+								<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
+							}
+						</select>
+					</footer>
+				}
+			</div>
+		</div>
 	</div>
 }
 
