@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/kaffeed/bingoscape/app/db"
 	"github.com/kaffeed/bingoscape/app/handlers"
@@ -17,6 +18,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/pressly/goose/v3"
 )
 
 func setupImageDirectories(path string) {
@@ -67,6 +69,16 @@ func main() {
 	}))
 
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte(os.Getenv("SECRET_KEY")))))
+
+	goose.SetBaseFS(db.EmbedMigrations)
+
+	if err := goose.SetDialect(os.Getenv("DB_DRIVER")); err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	if err := goose.Up(stdlib.OpenDBFromPool(connpool), "migrations"); err != nil {
+		log.Fatalf(err.Error())
+	}
 
 	store := db.New(connpool)
 

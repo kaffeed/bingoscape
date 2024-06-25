@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS public.submissions
     id serial NOT NULL,
     login_id serial NOT NULL,
     tile_id serial NOT NULL,
-    date timestamp NOT NULL DEFAULT NOW() ,
+    date timestamp NOT NULL DEFAULT NOW(),
     comment character varying(5000),
     PRIMARY KEY (id)
 );
