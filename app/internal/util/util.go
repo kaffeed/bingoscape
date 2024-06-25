@@ -46,3 +46,7 @@ func IsDevelopment() bool {
 func IsProduction() bool {
 	return os.Getenv("RUN_MODE") == "production"
 }
+
+func IsEmptyOrWhitespace(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
+}

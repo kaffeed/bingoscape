@@ -36,7 +36,6 @@ templ Login(isAuthenticated bool) {
 						type="password"
 						name="password"
 						required
-						minlength="6"
 						disabled?={ isAuthenticated }
 						if isAuthenticated {
 							value="disabled"

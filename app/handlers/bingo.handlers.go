@@ -325,10 +325,8 @@ func (bh *BingoHandler) handleDeleteBingo(c echo.Context) error {
 }
 
 func (bh *BingoHandler) handleDeleteSubmission(c echo.Context) error {
-	isManagement, ok := c.Get(mgmnt_key).(bool)
-	if !ok {
-		return fmt.Errorf("invalid type for key '%s'", mgmnt_key)
-	}
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
 		return errors.New("invalid type for key 'ISAUTHENTICATED'")
@@ -409,7 +407,7 @@ func (bh *BingoHandler) handlePutSubmissionStatus(c echo.Context) error {
 		return err
 	}
 
-	if comment != "" && comment != "\n\n" { // FIXME: bleh
+	if !util.IsEmptyOrWhitespace(comment) { // FIXME: bleh
 		uid, ok := c.Get(user_id_key).(int32)
 
 		if ok {
