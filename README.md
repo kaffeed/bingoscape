@@ -64,7 +64,7 @@ Before you begin, ensure you have the following installed:
 
 ### Running the Application
 
-==CAVE:== You need to create the database and the user on your own, the schema is migrated on the initial application startup.
+<mark>CAVE: You need to create the database and the user on your own, the schema is migrated on the initial application startup.</mark>
 
 1. Build the Go application:
    ```bash
@@ -80,7 +80,7 @@ Before you begin, ensure you have the following installed:
 4. In the same folder is a second executable, called mgmt that also requires the environment from the last step - you can use this one to create your initial management user like this:
 
    ```bash
-   ./bin/mgmt add -u \<username\> -p \<password\>
+   ./bin/mgmt add -u <username> -p <password>
    ```
 5. Open your web browser and go to localhost:PORT as specified in HTTP_LISTEN_ADDR .env variable to see the application.
 
