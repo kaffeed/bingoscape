@@ -75,8 +75,12 @@ Before you begin, ensure you have the following installed:
    ```bash
    ./bin/bingoscape
    ```
+4. In the same application is a second executable, called mgmt that also requires the environment from the last step - you can use this one to create your initial management user like this:
 
-4. Open your web browser and go to localhost:<PORT> to see the application.
+   ```bash
+   ./bin/mgmt add -u \<username\> -p \<password\>
+   ```
+5. Open your web browser and go to localhost:PORT as specified in HTTP_LISTEN_ADDR .env variable to see the application.
 
 ## Usage
 

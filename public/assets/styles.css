@@ -3766,10 +3766,6 @@ details.collapse summary::-webkit-details-marker {
   width: 33.333333%;
 }
 
-.w-2\/5 {
-  width: 40%;
-}
-
 .w-3\/5 {
   width: 60%;
 }
@@ -4046,6 +4042,16 @@ details.collapse summary::-webkit-details-marker {
 .border-primary {
   --tw-border-opacity: 1;
   border-color: var(--fallback-p,oklch(var(--p)/var(--tw-border-opacity)));
+}
+
+.border-success {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
+}
+
+.border-warning {
+  --tw-border-opacity: 1;
+  border-color: var(--fallback-wa,oklch(var(--wa)/var(--tw-border-opacity)));
 }
 
 .border-b-slate-600 {
