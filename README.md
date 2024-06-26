@@ -64,6 +64,8 @@ Before you begin, ensure you have the following installed:
 
 ### Running the Application
 
+==CAVE:== You need to create the database and the user on your own, the schema is migrated on the initial application startup.
+
 1. Build the Go application:
    ```bash
    make build
@@ -75,7 +77,7 @@ Before you begin, ensure you have the following installed:
    ```bash
    ./bin/bingoscape
    ```
-4. In the same application is a second executable, called mgmt that also requires the environment from the last step - you can use this one to create your initial management user like this:
+4. In the same folder is a second executable, called mgmt that also requires the environment from the last step - you can use this one to create your initial management user like this:
 
    ```bash
    ./bin/mgmt add -u \<username\> -p \<password\>
