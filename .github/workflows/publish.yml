@@ -57,6 +57,7 @@ jobs:
             fi
 
             echo "${{ secrets.SUDO_PWD }}" | sudo -S cp ./bingoscape /var/www/$env/bingoscape
+            echo "${{ secrets.SUDO_PWD }}" | sudo -S cp ./mgmt /var/www/$env/mgmt
             echo "${{ secrets.SUDO_PWD }}" | sudo -S cp $HOME/.config/bingoscape/envs/$env.env /var/www/$env/.env
             echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl start $env
             echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl status $env            
