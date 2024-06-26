@@ -11,20 +11,21 @@ Bingoscape is an oldschool Runescape clan bingo management tool built with Go, T
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Running the Application](#running-the-application)
-- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
 
 ## Introduction
 
-Bingoscape is designed for oldschool Runescape clans to create, manage, and track bingo events. It leverages modern web technologies to provide a seamless and interactive user experience.
+Bingoscape is a streamlined tool for managing oldschool Runescape clan bingo events, emphasizing simplicity and ease of use. Designed to handle one instance per clan, Bingoscape offers two types of login: management and bingo team. Management users have persistent accounts, enabling long-term administration, while team logins are temporary, created for the duration of a single bingo event.
 
-## Features
+### Key Features
 
-- Create and customize bingo boards
-- Progress tracking on a team / tile base
-- User-friendly interface with htmx and Tailwind CSS
+- **Simplicity and Focus**: Bingoscape is designed for ease of use, with a single instance per clan. Future updates will introduce a more comprehensive clan system.
+- **Flexible Login System**: Two distinct types of logins cater to different needs. Management users have ongoing accounts, while team logins are temporary, making it easy to set up and manage events.
+- **Reusable Templates**: Save time and effort by storing bingo tasks as templates. These can be reused in future bingo events, ensuring consistency and reducing setup time.
+- **Submission Review**: Management users can review team submissions, accepting them or marking them as needing action. This process includes the ability to comment on submissions, providing clear feedback and communication.
+- **Detailed Submission Views**: View submissions on a per-tile and per-team basis, offering a comprehensive overview of progress and performance.
 
 ## Technologies Used
 
@@ -84,11 +85,13 @@ Before you begin, ensure you have the following installed:
    ```
 5. Open your web browser and go to localhost:PORT as specified in HTTP_LISTEN_ADDR .env variable to see the application.
 
-## Usage
+### Running a local development server
 
-- Create a bingo event: Fill out the details of your bingo event including the number of participants, board size, and event duration.
-- Manage bingo boards: Customize the bingo boards by adding, editing, or removing tasks.
-- Track progress: View real-time updates of the participants' progress.
+1. To run bingoscape in local development mode, execute the following make step:
+   ```bash
+   make dev
+   ```
+   This starts the local web server, watches the assets for changes and hot-reloads the application on the default templ proxy port which is usually 7331
 
 ## Contributing
 
