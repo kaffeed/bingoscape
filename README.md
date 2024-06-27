@@ -72,7 +72,7 @@ Before you begin, ensure you have the following installed:
    make build
    ```
 
-2. Create a .env file in bin/ according to the [.env.example file](.env.example):
+2. Create a .env file in the folder you're running the application from according to the [.env.example file](.env.example):
 
 3. Run the application:
    ```bash

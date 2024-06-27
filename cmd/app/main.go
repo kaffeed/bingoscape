@@ -40,11 +40,6 @@ func setupImageDirectories(path string) {
 func main() {
 	godotenv.Load()
 	e := echo.New()
-	// e.AutoTLSManager = autocert.Manager{
-	// 	HostPolicy: autocert.HostWhitelist("152.89.239.147"),
-	// 	Prompt:     autocert.AcceptTOS,
-	// 	Cache:      autocert.DirCache("/var/www/.cache"),
-	// }
 
 	ctx := context.Background()
 	connpool, err := pgxpool.New(ctx, os.Getenv("DB_URL"))
@@ -52,7 +47,6 @@ func main() {
 		log.Fatalf("Error connecting to db: %#v", err)
 	}
 	defer connpool.Close()
-	// e.Static("/", "assets")
 	p := filepath.Join(os.Getenv("IMAGE_PATH"))
 	setupImageDirectories(p)
 
@@ -89,6 +83,7 @@ func main() {
 	us := services.NewUserServices(store)
 	bs := services.NewBingoService(store, connpool)
 	ts := services.NewTileService(store, connpool)
+
 	ah := handlers.NewAuthHandler(us)
 	bh := handlers.NewBingoHandler(bs, us, ts)
 	th := handlers.NewTileHandler(ts, us)
