@@ -34,12 +34,16 @@ func NewTileHandler(ts *services.TileService, us *services.UserService) *TileHan
 	}
 }
 
-func handleFileUpload(c echo.Context, fn, hfn, tip string) string {
+func handleFileUpload(c echo.Context, fn, hfn, tip string) (string, error) {
 	file, err := c.FormFile(fn)
 
 	var f string
 
 	if err != nil {
+		log.Printf("##################################################\n")
+		log.Printf("# file could not be opened! \n")
+		log.Printf("##################################################\n")
+
 		var imagePath string
 		err := echo.FormFieldBinder(c).String(hfn, &imagePath).BindError()
 		if err != nil {
@@ -48,14 +52,23 @@ func handleFileUpload(c echo.Context, fn, hfn, tip string) string {
 			f = imagePath
 		}
 	} else {
+		log.Printf("##################################################\n")
+		log.Printf("# file could be opened!: \n")
+		log.Printf("##################################################\n")
 		f, err = util.SaveFile(file)
-
 		if err != nil {
-			f = tip
+			log.Printf("##################################################\n")
+			log.Printf("# file could not be saved!:%v \n", err)
+			log.Printf("##################################################\n")
+			return "", err
 		}
-	}
 
-	return f
+	}
+	log.Printf("##################################################\n")
+	log.Printf("# Path: %s!                                \n", f)
+	log.Printf("##################################################\n")
+
+	return f, nil
 }
 
 func (th *TileHandler) handleDeleteTemplate(c echo.Context) error {
@@ -67,6 +80,7 @@ func (th *TileHandler) handleDeleteTemplate(c echo.Context) error {
 	if !isAuthenticated {
 		return echo.NewHTTPError(echo.ErrUnauthorized.Code, "Need to be authenticated")
 	}
+
 	isManagement, ok := c.Get(mgmnt_key).(bool)
 	if !ok {
 		return echo.NewHTTPError(echo.ErrInternalServerError.Code, fmt.Errorf("invalid type for key '"+mgmnt_key+"'"))
@@ -353,6 +367,12 @@ func (th *TileHandler) handleTileSubmission(c echo.Context) error {
 		files := form.File["files"]
 		filePaths := []string{}
 		for _, file := range files {
+			err = util.ValidateImageFile(file)
+			if err != nil {
+				setFlashmessages(c, "error", "Can only upload images!")
+				c.Set("ISERROR", true)
+				return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tile.ID))
+			}
 			src, err := file.Open()
 			if err != nil {
 				return err
@@ -459,8 +479,24 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "PUT" {
-		primaryImage := handleFileUpload(c, "file", "imagepath", tile.Imagepath)
-		secondaryImage := handleFileUpload(c, "secondaryfile", "secondaryimage", tile.SecondaryImagePath)
+		primaryImage, err := handleFileUpload(c, "file", "imagepath", tile.Imagepath)
+		if err != nil {
+			return echo.NewHTTPError(
+				echo.ErrInternalServerError.Code,
+				fmt.Sprintf(
+					"Wrong image filetype: %s",
+					err,
+				))
+		}
+		secondaryImage, err := handleFileUpload(c, "secondaryfile", "secondaryimage", tile.SecondaryImagePath)
+		if err != nil {
+			return echo.NewHTTPError(
+				echo.ErrInternalServerError.Code,
+				fmt.Sprintf(
+					"Wrong image filetype: %s",
+					err,
+				))
+		}
 
 		t := db.UpdateTileParams{ // TODO: Read from config
 			ID:                 int32(tileId),

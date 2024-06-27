@@ -109,6 +109,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 			class="file-input file-input-bordered w-full max-w-xs"
 			type="file"
 			name="file"
+			accept="image/png, image/jpeg"
 			disabled?={ !isManagement }
 			if !isManagement {
 				value="disabled"
@@ -120,6 +121,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 		<input
 			class="file-input file-input-bordered w-full max-w-xs"
 			type="file"
+			accept="image/png, image/jpeg"
 			name="secondaryfile"
 			disabled?={ !isManagement }
 			if !isManagement {
