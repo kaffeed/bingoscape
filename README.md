@@ -44,6 +44,7 @@ Before you begin, ensure you have the following installed:
 - [Go](https://golang.org/dl/) (version 1.22.x+)
 - [Node.js](https://nodejs.org/) and npm (for Tailwind CSS and esbuild)
 - [GNU Make](https://www.gnu.org/software/make/)
+- [PostgreSQL](https://www.postgresql.org/) 
 
 ### Installation
 
@@ -61,6 +62,28 @@ Before you begin, ensure you have the following installed:
 3. Build the program with:
    ```bash
    make build
+   ```
+4. Create the Database and Database User
+   First, connect to the database:
+   ```bash
+   psql -U postgres
+   ```
+
+   then, create the database. For this example we will use the user bingoscapeuser and the database bingoscape.
+   ```sql
+   create database bingoscape;
+   create user bingoscapeuser with encrypted password '<password>';
+   grant all privileges on database bingoscape to bingoscapeuser;
+   ```
+
+   depending on your postgres version (15+) you will also have to grant the user access to the schema public.
+   While still in psql, connect to your database like so: 
+   ```
+   \c bingoscape
+   ```
+   and afterwards run 
+   ```sql
+   grant all on schema public to bingoscapeuser;
    ```
 
 ### Running the Application
