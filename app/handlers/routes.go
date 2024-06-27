@@ -2,7 +2,7 @@ package handlers
 
 import "github.com/labstack/echo/v4"
 
-func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHandler) {
+func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHandler, tileHandler *TileHandler) {
 	e.GET("/", authHandlers.flagsMiddleware(authHandlers.homeHandler))
 	e.GET("/login", authHandlers.flagsMiddleware(authHandlers.loginHandler))
 	e.POST("/login", authHandlers.flagsMiddleware(authHandlers.loginHandler))
@@ -10,22 +10,22 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 
 	teamGroup := e.Group("/logins", authHandlers.authMiddleware)
 	teamGroup.GET("", authHandlers.handleUsermanagement)
-	teamGroup.GET("/create", bingoHandlers.handleCreateLogin)
-	teamGroup.POST("/create", bingoHandlers.handleCreateLogin)
+	teamGroup.GET("/create", authHandlers.handleCreateLogin)
+	teamGroup.POST("/create", authHandlers.handleCreateLogin)
 	teamGroup.GET("/list", authHandlers.handleLoginTable)
-	teamGroup.DELETE("/:userId", bingoHandlers.handleDeleteLogin)
+	teamGroup.DELETE("/:userId", authHandlers.handleDeleteLogin)
 	teamGroup.PUT("/:userId/password", authHandlers.handleChangePassword)
 
 	tileGroup := e.Group("/tiles", authHandlers.authMiddleware)
-	tileGroup.GET("/:tileId", bingoHandlers.handleTile)
-	tileGroup.PUT("/:tileId", bingoHandlers.handleTile)
-	tileGroup.POST("/:tileId/submit", bingoHandlers.handleTileSubmission)
-	tileGroup.GET("/:tileId/templates", bingoHandlers.handleLoadFromTemplate)
-	tileGroup.GET("/:tileId/submissions", bingoHandlers.handleGetTileSubmissions)
-	tileGroup.PUT("/submissions/:submissionId/:state", bingoHandlers.handlePutSubmissionStatus)
-	tileGroup.DELETE("/:tileId/submissions/:submissionId", bingoHandlers.handleDeleteSubmission)
-	tileGroup.GET("/templates", bingoHandlers.handleGetTemplateTiles)
-	tileGroup.DELETE("/templates/:templateId", bingoHandlers.handleDeleteTemplate)
+	tileGroup.GET("/:tileId", tileHandler.handleTile)
+	tileGroup.PUT("/:tileId", tileHandler.handleTile)
+	tileGroup.POST("/:tileId/submit", tileHandler.handleTileSubmission)
+	tileGroup.GET("/:tileId/templates", tileHandler.handleLoadFromTemplate)
+	tileGroup.GET("/:tileId/submissions", tileHandler.handleGetTileSubmissions)
+	tileGroup.PUT("/submissions/:submissionId/:state", tileHandler.handlePutSubmissionStatus)
+	tileGroup.DELETE("/:tileId/submissions/:submissionId", tileHandler.handleDeleteSubmission)
+	tileGroup.GET("/templates", tileHandler.handleGetTemplateTiles)
+	tileGroup.DELETE("/templates/:templateId", tileHandler.handleDeleteTemplate)
 
 	// /* ↓ Protected Routes ↓ */
 	protectedGroup := e.Group("/bingos", authHandlers.authMiddleware)

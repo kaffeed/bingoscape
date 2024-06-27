@@ -324,3 +324,105 @@ func render(c echo.Context, cmp templ.Component) error {
 
 	return cmp.Render(c.Request().Context(), c.Response().Writer)
 }
+
+func (ah *AuthHandler) handleCreateLogin(c echo.Context) error {
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		return fmt.Errorf("invalid type for key '" + mgmnt_key + "'")
+	}
+
+	if !isAuthenticated || !isManagement {
+		setFlashmessages(c, "error", "need to be authenticated and management for creating users")
+		return c.Redirect(http.StatusUnauthorized, "/")
+	}
+
+	registerView := authviews.CreateUser(isManagement)
+	// isError = false
+	c.Set("ISERROR", false)
+
+	if c.Request().Method == "POST" {
+		var p, n, m string
+
+		err := echo.
+			FormFieldBinder(c).
+			String("password", &p).
+			String("username", &n).
+			String("management", &m).
+			BindError()
+
+		if err != nil {
+			return echo.ErrBadRequest
+		}
+
+		user := db.CreateLoginParams{
+			Password:     p,
+			Name:         n,
+			IsManagement: m == "on",
+		}
+
+		err = ah.UserServices.CreateUser(user)
+		if err != nil {
+			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+				err = errors.New("the username is already in use")
+				setFlashmessages(c, "error", fmt.Sprintf(
+					"something went wrong: %s",
+					err,
+				))
+
+				return c.Redirect(http.StatusSeeOther, "/logins/create")
+			}
+
+			return echo.NewHTTPError(
+				echo.ErrInternalServerError.Code,
+				fmt.Sprintf(
+					"something went wrong: %s",
+					err,
+				))
+		}
+
+		setFlashmessages(c, "success", "You have successfully created a new login!")
+		return c.Redirect(http.StatusSeeOther, "/")
+	}
+
+	return render(c, authviews.CreateUserIndex(
+		"| Create User",
+		"",
+		isAuthenticated,
+		isManagement,
+		c.Get("ISERROR").(bool),
+		getFlashmessages(c, "error"),
+		getFlashmessages(c, "success"),
+		registerView,
+	))
+}
+
+func (ah *AuthHandler) handleDeleteLogin(c echo.Context) error {
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return c.Redirect(http.StatusUnauthorized, c.Request().URL.RequestURI()) // FIXME: is this the right way?
+	}
+
+	var userId int32
+	err := echo.PathParamsBinder(c).Int32("userId", &userId).BindError()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = ah.UserServices.DeleteUser(userId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return c.Redirect(http.StatusSeeOther, "/logins")
+}
