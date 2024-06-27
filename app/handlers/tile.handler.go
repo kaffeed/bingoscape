@@ -40,10 +40,6 @@ func handleFileUpload(c echo.Context, fn, hfn, tip string) (string, error) {
 	var f string
 
 	if err != nil {
-		log.Printf("##################################################\n")
-		log.Printf("# file could not be opened! \n")
-		log.Printf("##################################################\n")
-
 		var imagePath string
 		err := echo.FormFieldBinder(c).String(hfn, &imagePath).BindError()
 		if err != nil {
@@ -52,21 +48,11 @@ func handleFileUpload(c echo.Context, fn, hfn, tip string) (string, error) {
 			f = imagePath
 		}
 	} else {
-		log.Printf("##################################################\n")
-		log.Printf("# file could be opened!: \n")
-		log.Printf("##################################################\n")
 		f, err = util.SaveFile(file)
 		if err != nil {
-			log.Printf("##################################################\n")
-			log.Printf("# file could not be saved!:%v \n", err)
-			log.Printf("##################################################\n")
 			return "", err
 		}
-
 	}
-	log.Printf("##################################################\n")
-	log.Printf("# Path: %s!                                \n", f)
-	log.Printf("##################################################\n")
 
 	return f, nil
 }
@@ -244,6 +230,21 @@ func (th *TileHandler) handleDeleteSubmission(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
 	}
 
+	t, err := th.TileService.LoadTile(int(tileId))
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	sc, err := th.TileService.Store.GetSubmissionClosedStatusForBingo(context.TODO(), t.BingoID)
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	if sc {
+		setFlashmessages(c, "error", "Can't delete submissions after submissions are closed")
+		return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+	}
+
 	err = th.TileService.Store.DeleteSubmissionById(context.TODO(), s.ID)
 	if err != nil {
 		setFlashmessages(c, "error", "Could not delete submission")
@@ -359,6 +360,16 @@ func (th *TileHandler) handleTileSubmission(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "POST" {
+		sc, err := th.TileService.Store.GetSubmissionClosedStatusForBingo(context.TODO(), tile.BingoID)
+		if err != nil {
+			return echo.ErrInternalServerError
+		}
+
+		if sc {
+			setFlashmessages(c, "error", "Submissions are closed")
+			return c.Redirect(http.StatusSeeOther, fmt.Sprintf("/tiles/%d", tileId))
+		}
+
 		form, err := c.MultipartForm()
 
 		if err != nil {
@@ -440,6 +451,11 @@ func (bh *TileHandler) handleGetTileSubmissions(c echo.Context) error {
 		return fmt.Errorf("Need valid tile id: %w", err)
 	}
 
+	tile, err := bh.TileService.LoadTile(int(tileId))
+	if err != nil {
+		return fmt.Errorf("Could not load tile: %w", err)
+	}
+
 	var submissionMap views.Submissions
 	if isManagement {
 		submissionMap, err = bh.TileService.LoadAllSubmissionsForTile(tileId)
@@ -451,7 +467,12 @@ func (bh *TileHandler) handleGetTileSubmissions(c echo.Context) error {
 		return err
 	}
 
-	return render(c, components.Submissions(isManagement, submissionMap))
+	sc, err := bh.TileService.Store.GetSubmissionClosedStatusForBingo(context.TODO(), tile.BingoID)
+	if err != nil {
+		return err
+	}
+
+	return render(c, components.Submissions(isManagement, sc, submissionMap))
 }
 
 func (th *TileHandler) handleTile(c echo.Context) error {
@@ -541,15 +562,18 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 
 	if isManagement {
 		submissions, err = th.TileService.LoadAllSubmissionsForTile(tile.ID)
-		templates, err = th.TileService.Store.GetTemplateTiles(context.Background())
+		templates, err = th.TileService.Store.GetTemplateTiles(context.TODO())
 	} else {
 		submissions, err = th.TileService.LoadUserSubmissions(tile.ID, uid)
 	}
 
+	sc, err := th.TileService.Store.GetSubmissionClosedStatusForBingo(context.TODO(), tile.BingoID)
+
 	tm := views.TileModel{
-		Tile:        tile,
-		Submissions: submissions,
-		Templates:   templates,
+		Tile:             tile,
+		Submissions:      submissions,
+		Templates:        templates,
+		SubmissionClosed: sc,
 	}
 
 	editTileView := authviews.Tile(isManagement, tm, uid)

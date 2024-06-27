@@ -21,10 +21,10 @@ templ TeamSubmissions(isManagement bool, subs views.TeamSubmissionModel) {
 		</div>
 		<div class="divider"></div>
 		for _, ts := range subs.Submissions {
-				@tileHeader(ts.Tile)
-				<div class="divider w-3/5 mx-auto"></div>
-				@components.Submission(isManagement, ts)
-				<div class="divider w-full"></div>
+			@tileHeader(ts.Tile)
+			<div class="divider w-3/5 mx-auto"></div>
+			@components.Submission(isManagement, subs.SubmissionsClosed, ts)
+			<div class="divider w-full"></div>
 		}
 	</section>
 }

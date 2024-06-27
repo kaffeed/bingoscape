@@ -117,6 +117,12 @@ INSERT INTO tiles(title, imagepath, description, bingo_id, weight, secondary_ima
 -- name: ToggleBingoState :one
 UPDATE bingos SET active = NOT active WHERE id = $1 returning active;
 
+-- name: ToggleSubmissionsClosed :one
+UPDATE bingos SET submissions_closed = NOT submissions_closed WHERE id = $1 returning submissions_closed;
+
+-- name: ToggleLeaderboardPublic :one
+UPDATE bingos SET leaderboard_public = NOT leaderboard_public WHERE id = $1 returning leaderboard_public;
+
 -- name: GetBingoLeaderboard :many
 select l.name, sum(t.weight) as points from submissions s
 JOIN logins as l on l.id = s.login_id
@@ -146,3 +152,6 @@ select count(case when state = 'Submitted'::SUBMISSIONSTATE THEN 1 END) as submi
 from submissions 
 JOIN bingos_logins ON bingos_logins.login_id = submissions.login_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2;
+
+-- name: GetSubmissionClosedStatusForBingo :one
+select submissions_closed from public.bingos where id = $1;

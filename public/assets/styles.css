@@ -3278,6 +3278,20 @@ details.collapse summary::-webkit-details-marker {
   color: var(--fallback-suc,oklch(var(--suc)/var(--tw-text-opacity)));
 }
 
+.toggle-error:focus-visible {
+  outline-color: var(--fallback-er,oklch(var(--er)/1));
+}
+
+.toggle-error:checked,
+    .toggle-error[aria-checked="true"] {
+  border-color: var(--fallback-er,oklch(var(--er)/var(--tw-border-opacity)));
+  --tw-border-opacity: 0.1;
+  --tw-bg-opacity: 1;
+  background-color: var(--fallback-er,oklch(var(--er)/var(--tw-bg-opacity)));
+  --tw-text-opacity: 1;
+  color: var(--fallback-erc,oklch(var(--erc)/var(--tw-text-opacity)));
+}
+
 .toggle:disabled {
   cursor: not-allowed;
   --tw-border-opacity: 1;

@@ -4,7 +4,7 @@ import "fmt"
 import "github.com/kaffeed/bingoscape/app/db"
 import "github.com/kaffeed/bingoscape/app/views"
 
-templ Submissions(isManagement bool, s views.Submissions) {
+templ Submissions(isManagement, closed bool, s views.Submissions) {
 	for key, val := range s {
 		for _, s := range val {
 			<div class="flex flex-row w-full">
@@ -16,12 +16,12 @@ templ Submissions(isManagement bool, s views.Submissions) {
 					</ul>
 				</div>
 			</div>
-			@Submission(isManagement, s)
+			@Submission(isManagement, closed, s)
 		}
 	}
 }
 
-templ Submission(isManagement bool, s views.SubmissionData) {
+templ Submission(isManagement, closed bool, s views.SubmissionData) {
 	<div
 		class={
 			"container",
@@ -58,16 +58,18 @@ templ Submission(isManagement bool, s views.SubmissionData) {
 			}
 		</div>
 	</div>
-	<button
-		class="btn btn-warning pull-right"
-		hx-delete={ fmt.Sprintf("/tiles/%d/submissions/%d", s.TileID, s.ID) }
-		hx-target="body"
-		hx-swap="transition:true"
-		hx-push-url="true"
-		hx-confirm="Are you sure you want to delete this submission?"
-	>
-		Delete
-	</button>
+	if !closed {
+		<button
+			class="btn btn-warning pull-right"
+			hx-delete={ fmt.Sprintf("/tiles/%d/submissions/%d", s.TileID, s.ID) }
+			hx-target="body"
+			hx-swap="transition:true"
+			hx-push-url="true"
+			hx-confirm="Are you sure you want to delete this submission?"
+		>
+			Delete
+		</button>
+	}
 }
 
 templ SubmissionHeader(isManagement bool, s views.SubmissionData) {

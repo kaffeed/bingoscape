@@ -17,7 +17,7 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 			</a>
 		</div>
 		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
-			@carousel(tm) {
+			@carousel() {
 				@carouselItem("slide1", tm.Imagepath, "#slide2")
 				@carouselItem("slide2", tm.SecondaryImagePath, "#slide1")
 			}
@@ -32,7 +32,7 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 				}
 			</div>
 		</div>
-		if !isManagement && tm.Stats(loginId).State != db.SubmissionstateAccepted {
+		if !isManagement && tm.Stats(loginId).State != db.SubmissionstateAccepted && !tm.SubmissionClosed {
 			<div class="divider"></div>
 			@components.SubmissionForm(isManagement, tm.Tile.ID)
 		}
@@ -51,7 +51,7 @@ templ carouselItem(id, path, ref string) {
 	</div>
 }
 
-templ carousel(tm views.TileModel) {
+templ carousel() {
 	<div class="carousel w-full justify-between">
 		{ children... }
 	</div>

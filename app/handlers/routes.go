@@ -38,6 +38,8 @@ func SetupRoutes(e *echo.Echo, authHandlers *AuthHandler, bingoHandlers *BingoHa
 	protectedGroup.GET("/:bingoId/participants", bingoHandlers.handleBingoParticipation)
 	protectedGroup.DELETE("/:bingoId/participants/:pId", bingoHandlers.removeBingoParticipation)
 	protectedGroup.PUT("/:bingoId/toggleState", bingoHandlers.handleBingoState)
+	protectedGroup.PUT("/:bingoId/toggleLeaderboardPublic", bingoHandlers.handleBingoToggleLeaderboardPublic)
+	protectedGroup.PUT("/:bingoId/toggleSubmissionsClosed", bingoHandlers.handleBingoToggleSubmissionClosed)
 	protectedGroup.GET("/:bingoId/teams/:loginId/submissions", bingoHandlers.handleTeamSubmissions)
 
 	// protectedGroup.GET("/create", th.createTodoHandler)

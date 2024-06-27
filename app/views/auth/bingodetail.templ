@@ -69,17 +69,21 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 					<!-- Set as Ready Button -->
 					if isManagement {
 						@BingoStateButton(bingo.ID, bingo.Active)
+						@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
+						@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
 					}
 				</div>
 			</div>
 		</div>
-		<div class="hero w-full bg-base-200 py-12 px-4">
-			<div class="w-full relative">
-				<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
-				<canvas id="leaderboardChart" class="w-full h-96"></canvas>
-				@chartData(bingo)
+		if isManagement || bingo.LeaderboardPublic {
+			<div class="hero w-full bg-base-200 py-12 px-4">
+				<div class="w-full relative">
+					<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
+					<canvas id="leaderboardChart" class="w-full h-96"></canvas>
+					@chartData(bingo)
+				</div>
 			</div>
-		</div>
+		}
 	</div>
 }
 
@@ -99,6 +103,46 @@ templ BingoStateButton(bingoId int32, ready bool) {
 			type="checkbox"
 			name="codephrase"
 			checked?={ ready }
+		/>
+	</label>
+}
+
+templ BingoSubmissionsClosedButton(bingoId int32, submissionsClosed bool) {
+	<label
+		class="flex justify-start gap-2"
+	>
+		<span class="text-lg md:text-xl font-bold gap-2">
+			Submissions closed: 
+		</span>
+		<input
+			class="toggle toggle-error pull-right"
+			hx-put={ fmt.Sprintf("/bingos/%d/toggleSubmissionsClosed", bingoId) }
+			hx-confirm="Are you sure you want to close submissions?"
+			hx-swap="closest label"
+			hx-trigger="change"
+			type="checkbox"
+			name="codephrase"
+			checked?={ submissionsClosed }
+		/>
+	</label>
+}
+
+templ BingoLeaderboardPublicButton(bingoId int32, leaderboardPublic bool) {
+	<label
+		class="flex justify-start gap-2"
+	>
+		<span class="text-lg md:text-xl font-bold gap-2">
+			Leaderboard public: 
+		</span>
+		<input
+			class="toggle toggle-success pull-right"
+			hx-put={ fmt.Sprintf("/bingos/%d/toggleLeaderboardPublic", bingoId) }
+			hx-confirm="Are you sure you want to toggle the leaderboard public state?"
+			hx-swap="closest label"
+			hx-trigger="change"
+			type="checkbox"
+			name="codephrase"
+			checked?={ leaderboardPublic }
 		/>
 	</label>
 }

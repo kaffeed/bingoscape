@@ -402,6 +402,62 @@ func (bh *BingoHandler) handleBingoState(c echo.Context) error {
 	return render(c, authviews.BingoStateButton(bingoId, bingoReady))
 }
 
+func (bh *BingoHandler) handleBingoToggleSubmissionClosed(c echo.Context) error {
+
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return c.Redirect(http.StatusForbidden, c.Request().URL.RequestURI()) // FIXME: is this the right way?
+	}
+
+	var bingoId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).BindError()
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	submissionsClosed, err := bh.BingoService.Store.ToggleSubmissionsClosed(context.Background(), bingoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	return render(c, authviews.BingoSubmissionsClosedButton(bingoId, submissionsClosed))
+}
+
+func (bh *BingoHandler) handleBingoToggleLeaderboardPublic(c echo.Context) error {
+
+	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/login")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+
+	if !isManagement {
+		return c.Redirect(http.StatusForbidden, c.Request().URL.RequestURI()) // FIXME: is this the right way?
+	}
+
+	var bingoId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).BindError()
+
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	leaderboardPublic, err := bh.BingoService.Store.ToggleLeaderboardPublic(context.Background(), bingoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	return render(c, authviews.BingoLeaderboardPublicButton(bingoId, leaderboardPublic))
+}
+
 func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
 	isAuthenticated, _ := c.Get("ISAUTHENTICATED").(bool)
 	if !isAuthenticated {
@@ -464,11 +520,13 @@ func (bh *BingoHandler) handleTeamSubmissions(c echo.Context) error {
 		c.Set("ISERROR", true)
 		return echo.NewHTTPError(echo.ErrInternalServerError.Code, "no login found")
 	}
+	sc, err := bh.BingoService.Store.GetSubmissionClosedStatusForBingo(context.TODO(), bingoId)
 
 	m := views.TeamSubmissionModel{
-		Submissions: sd,
-		BingoID:     bingoId,
-		Name:        l.Name,
+		Submissions:       sd,
+		BingoID:           bingoId,
+		Name:              l.Name,
+		SubmissionsClosed: sc,
 	}
 
 	submissionView := authviews.TeamSubmissions(isManagement, m)

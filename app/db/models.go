@@ -55,15 +55,17 @@ func (ns NullSubmissionstate) Value() (driver.Value, error) {
 }
 
 type Bingo struct {
-	ID          int32
-	Title       string
-	Validfrom   pgtype.Timestamp
-	Validto     pgtype.Timestamp
-	Rows        int32
-	Cols        int32
-	Description string
-	Codephrase  string
-	Active      bool
+	ID                int32
+	Title             string
+	Validfrom         pgtype.Timestamp
+	Validto           pgtype.Timestamp
+	Rows              int32
+	Cols              int32
+	Description       string
+	Codephrase        string
+	Active            bool
+	SubmissionsClosed bool
+	LeaderboardPublic bool
 }
 
 type BingosLogin struct {
@@ -98,6 +100,7 @@ type SubmissionImage struct {
 	ID           int32
 	Path         string
 	SubmissionID int32
+	CreatedAt    pgtype.Timestamp
 }
 
 type TemplateTile struct {

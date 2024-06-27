@@ -7,9 +7,10 @@ type PossibleBingoParticipants []db.GetPossibleBingoParticipantsRow
 type BingoParticipants map[db.GetBingoParticipantsRow]db.GetStatsByLoginAndBingoRow
 
 type TeamSubmissionModel struct {
-	Submissions []SubmissionData
-	BingoID     int32
-	Name        string
+	Submissions       []SubmissionData
+	BingoID           int32
+	Name              string
+	SubmissionsClosed bool
 }
 
 type SubmissionData struct {
@@ -29,8 +30,9 @@ type BingoDetailModel struct {
 
 type TileModel struct {
 	db.Tile
-	Submissions Submissions
-	Templates   []db.TemplateTile
+	Submissions      Submissions
+	Templates        []db.TemplateTile
+	SubmissionClosed bool
 }
 
 type TileStats struct {
