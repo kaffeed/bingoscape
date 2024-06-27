@@ -72,6 +72,13 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 						@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
 						@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
 					}
+					if !isManagement && bingo.SubmissionsClosed {
+						<div class="mx-auto">
+							<div class="badge badge-error gap-2">
+								SUBMISSIONS CLOSED
+							</div>
+						</div>
+					}
 				</div>
 			</div>
 		</div>

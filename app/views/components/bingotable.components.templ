@@ -61,6 +61,7 @@ templ tableHeaders(isManagement bool) {
 		<th>End (UTC)</th>
 		<th>Code-Phrase</th>
 		<th>Size</th>
+		<th>Submissions</th>
 		if isManagement {
 			<th>State</th>
 			<th></th>
@@ -92,15 +93,26 @@ templ bingoTableRow(bingo db.Bingo, isManagement bool, _ *time.Location) {
 		<td>
 			<span class="badge badge-ghost badge-sm">{ fmt.Sprintf("%d x %d", bingo.Rows, bingo.Cols) }</span>
 		</td>
+		<td>
+			if bingo.SubmissionsClosed {
+				<span class="badge badge-error gap-2">
+					Closed
+				</span>
+			} else {
+				<span class="badge badge-success gap-2">
+					Open
+				</span>
+			}
+		</td>
 		if isManagement {
 			<td>
 				if bingo.Active {
 					<span class="badge badge-success gap-2">
-						Active
+						Visible
 					</span>
 				} else {
 					<span class="badge badge-warning gap-2">
-						Inactive
+						Invisible
 					</span>
 				}
 			</td>
