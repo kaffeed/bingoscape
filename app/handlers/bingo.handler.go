@@ -399,7 +399,7 @@ func (bh *BingoHandler) handleBingoState(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, err)
 	}
 
-	return render(c, authviews.BingoStateButton(bingoId, bingoReady))
+	return render(c, authviews.BingoVisibilityButton(bingoId, bingoReady))
 }
 
 func (bh *BingoHandler) handleBingoToggleSubmissionClosed(c echo.Context) error {
