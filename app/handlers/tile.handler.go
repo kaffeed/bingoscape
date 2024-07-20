@@ -41,8 +41,11 @@ func handleFileUpload(c echo.Context, fn, hfn, tip string) (string, error) {
 
 	if err != nil {
 		var imagePath string
-		err := echo.FormFieldBinder(c).String(hfn, &imagePath).BindError()
-		if err != nil {
+		err := echo.
+			FormFieldBinder(c).
+			String(hfn, &imagePath).
+			BindError()
+		if !util.IsEmptyOrWhitespace(tip) || err != nil {
 			f = tip
 		} else {
 			f = imagePath
@@ -475,6 +478,23 @@ func (bh *TileHandler) handleGetTileSubmissions(c echo.Context) error {
 	return render(c, components.Submissions(isManagement, sc, submissionMap))
 }
 
+type imagePathSelectorFunc func(string) string
+
+func imageUrlSelectorFunction(c echo.Context, fieldName string) imagePathSelectorFunc {
+	return func(def string) string {
+		var imageDefaultValue string
+		err := echo.
+			FormFieldBinder(c).
+			String(fieldName, &imageDefaultValue).
+			BindError()
+
+		if err != nil || util.IsEmptyOrWhitespace(imageDefaultValue) {
+			return def
+		}
+		return imageDefaultValue
+	}
+}
+
 func (th *TileHandler) handleTile(c echo.Context) error {
 	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
 	if !ok {
@@ -500,7 +520,8 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "PUT" {
-		primaryImage, err := handleFileUpload(c, "file", "imagepath", tile.Imagepath)
+		primaryImageSelector := imageUrlSelectorFunction(c, "primaryImageUrl")
+		primaryImage, err := handleFileUpload(c, "file", "imagepath", primaryImageSelector(tile.Imagepath))
 		if err != nil {
 			return echo.NewHTTPError(
 				echo.ErrInternalServerError.Code,
@@ -509,7 +530,9 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 					err,
 				))
 		}
-		secondaryImage, err := handleFileUpload(c, "secondaryfile", "secondaryimage", tile.SecondaryImagePath)
+		secondaryImagePathSelector := imageUrlSelectorFunction(c, "secondaryImageUrl")
+		secondaryImage, err := handleFileUpload(c, "secondaryfile", "secondaryimage", secondaryImagePathSelector(tile.SecondaryImagePath))
+
 		if err != nil {
 			return echo.NewHTTPError(
 				echo.ErrInternalServerError.Code,
@@ -525,7 +548,12 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 			SecondaryImagePath: secondaryImage,
 		}
 
-		err = echo.FormFieldBinder(c).String("title", &t.Title).String("description", &t.Description).Int32("weight", &t.Weight).BindError()
+		err = echo.
+			FormFieldBinder(c).
+			String("title", &t.Title).
+			String("description", &t.Description).
+			Int32("weight", &t.Weight).
+			BindError()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error while binding form fields")
 		}

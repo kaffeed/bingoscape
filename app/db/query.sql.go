@@ -202,6 +202,15 @@ func (q *Queries) CreateTile(ctx context.Context, arg CreateTileParams) (Tile, e
 	return i, err
 }
 
+type CreateTilesParams struct {
+	Title              string
+	Imagepath          string
+	Description        string
+	BingoID            int32
+	Weight             int32
+	SecondaryImagePath string
+}
+
 const deleteBingoById = `-- name: DeleteBingoById :exec
 DELETE FROM bingos WHERE id = $1
 `
@@ -570,11 +579,42 @@ func (q *Queries) GetPossibleBingoParticipants(ctx context.Context, bingoID int3
 	return items, nil
 }
 
+const getRandomTemplates = `-- name: GetRandomTemplates :many
+select id, title, imagepath, description, weight, secondary_image_path from public.template_tiles TABLESAMPLE SYSTEM_ROWS($1::integer)
+`
+
+func (q *Queries) GetRandomTemplates(ctx context.Context, dollar_1 int32) ([]TemplateTile, error) {
+	rows, err := q.db.Query(ctx, getRandomTemplates, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TemplateTile
+	for rows.Next() {
+		var i TemplateTile
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Imagepath,
+			&i.Description,
+			&i.Weight,
+			&i.SecondaryImagePath,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getStatsByLoginAndBingo = `-- name: GetStatsByLoginAndBingo :one
 select count(case when state = 'Submitted'::SUBMISSIONSTATE THEN 1 END) as submitted,
        count(case when state = 'ActionRequired'::SUBMISSIONSTATE THEN 1 END) as needs_action,
 	   count(case when state = 'Accepted'::SUBMISSIONSTATE THEN 1 END) as accepted
-from submissions 
+from submissions
 JOIN bingos_logins ON bingos_logins.login_id = submissions.login_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2
 `
@@ -642,7 +682,7 @@ func (q *Queries) GetSubmissionIdForTileAndLogin(ctx context.Context, arg GetSub
 }
 
 const getSubmissionsByBingoAndLogin = `-- name: GetSubmissionsByBingoAndLogin :many
-select distinct bingos_logins.bingo_id, submissions.id, submissions.login_id, submissions.tile_id, submissions.date, submissions.state, tiles.id, tiles.title, tiles.imagepath, tiles.description, tiles.bingo_id, tiles.weight, tiles.secondary_image_path from submissions  
+select distinct bingos_logins.bingo_id, submissions.id, submissions.login_id, submissions.tile_id, submissions.date, submissions.state, tiles.id, tiles.title, tiles.imagepath, tiles.description, tiles.bingo_id, tiles.weight, tiles.secondary_image_path from submissions
 join tiles on submissions.tile_id = tiles.id
 join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2
@@ -846,7 +886,7 @@ func (q *Queries) GetTileById(ctx context.Context, id int32) (Tile, error) {
 
 const getTilesForBingo = `-- name: GetTilesForBingo :many
 SELECT id, title, imagepath, description, bingo_id, weight, secondary_image_path
-FROM tiles 
+FROM tiles
 WHERE bingo_id = $1 ORDER BY id ASC
 `
 

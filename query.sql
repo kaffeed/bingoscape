@@ -48,14 +48,14 @@ WHERE submissions.tile_id = $1 AND submissions.login_id = $2;
 -- name: DeleteBingoById :exec
 DELETE FROM bingos WHERE id = $1;
 
--- name: GetSubmissionIdForTileAndLogin :one 
+-- name: GetSubmissionIdForTileAndLogin :one
 SELECT id FROM public.submissions WHERE tile_id = $1 AND login_id = $2;
 
 -- name: CreateSubmission :one
 INSERT INTO public.submissions (login_id, tile_id, state) values ($1, $2, $3) returning *;
 
--- name: CreateSubmissionImage :exec 
-INSERT INTO submission_images(path, submission_id) VALUES ($1, $2); 
+-- name: CreateSubmissionImage :exec
+INSERT INTO submission_images(path, submission_id) VALUES ($1, $2);
 
 -- name: CreateTemplateTile :one
 INSERT INTO template_tiles(title, imagepath, description, weight, secondary_image_path) VALUES ($1, $2, $3, $4, $5) returning *;
@@ -71,7 +71,7 @@ SELECT l.id, l.name FROM public.logins l
 	WHERE l.id NOT IN (SELECT login_id from public.bingos_logins WHERE bingo_id = $1)
 	AND not l.is_management;
 
--- name: GetBingoParticipants :many 
+-- name: GetBingoParticipants :many
 SELECT l.Id, l.name FROM public.logins l
 	JOIN bingos_logins bl ON l.id = bl.login_id
 	WHERE bl.bingo_id = $1;
@@ -99,7 +99,7 @@ SELECT * FROM tiles WHERE id = $1;
 
 -- name: GetTilesForBingo :many
 SELECT *
-FROM tiles 
+FROM tiles
 WHERE bingo_id = $1 ORDER BY id ASC;
 
 -- name: DeleteBingoParticipant :exec
@@ -113,6 +113,9 @@ INSERT INTO bingos (title, validFrom, validTo, rows, cols, description, active, 
 
 -- name: CreateTile :one
 INSERT INTO tiles(title, imagepath, description, bingo_id, weight, secondary_image_path) VALUES ($1, $2, $3, $4, $5, $6) returning *;
+
+-- name: CreateTiles :copyfrom
+INSERT INTO tiles(title, imagepath, description, bingo_id, weight, secondary_image_path) VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: ToggleBingoState :one
 UPDATE bingos SET active = NOT active WHERE id = $1 returning active;
@@ -139,7 +142,7 @@ delete from submissions where id = $1;
 delete from template_tiles where id = $1;
 
 -- name: GetSubmissionsByBingoAndLogin :many
-select distinct bingos_logins.bingo_id, sqlc.embed(submissions), sqlc.embed(tiles) from submissions  
+select distinct bingos_logins.bingo_id, sqlc.embed(submissions), sqlc.embed(tiles) from submissions
 join tiles on submissions.tile_id = tiles.id
 join bingos_logins on tiles.bingo_id = bingos_logins.bingo_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2
@@ -149,9 +152,12 @@ ORDER BY tiles.id asc;
 select count(case when state = 'Submitted'::SUBMISSIONSTATE THEN 1 END) as submitted,
        count(case when state = 'ActionRequired'::SUBMISSIONSTATE THEN 1 END) as needs_action,
 	   count(case when state = 'Accepted'::SUBMISSIONSTATE THEN 1 END) as accepted
-from submissions 
+from submissions
 JOIN bingos_logins ON bingos_logins.login_id = submissions.login_id
 where submissions.login_id = $1 and bingos_logins.bingo_id = $2;
 
 -- name: GetSubmissionClosedStatusForBingo :one
 select submissions_closed from public.bingos where id = $1;
+
+-- name: GetRandomTemplates :many
+select * from public.template_tiles TABLESAMPLE SYSTEM_ROWS($1::integer);
