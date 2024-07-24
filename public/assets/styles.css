@@ -1639,7 +1639,8 @@ html {
 }
 
 .rs {
-  color: #f8fe08
+  color: #f8fe08;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
 
 .bingo-image {
@@ -1650,17 +1651,17 @@ html {
   /* or "contain" */
 }
 
-.htmx-indicator{
-  opacity:0;
+.htmx-indicator {
+  opacity: 0;
   transition: opacity 500ms ease-in;
 }
 
-.htmx-request .htmx-indicator{
-  opacity:1
+.htmx-request .htmx-indicator {
+  opacity: 1
 }
 
-.htmx-request.htmx-indicator{
-  opacity:1
+.htmx-request.htmx-indicator {
+  opacity: 1
 }
 
 *, ::before, ::after {
