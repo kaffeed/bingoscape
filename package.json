@@ -3,11 +3,12 @@
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.19",
     "daisyui": "^4.11.1",
+    "esbuild": "^0.21.5",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.3",
-    "esbuild": "^0.21.5"
+    "tailwindcss": "^3.4.3"
   },
   "dependencies": {
-    "@flaticon/flaticon-uicons": "^3.2.1"
+    "@flaticon/flaticon-uicons": "^3.2.1",
+    "theme-change": "^2.5.0"
   }
 }

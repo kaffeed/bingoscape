@@ -1,4 +1,5 @@
-console.log("hello from index.js")
+import { themeChange } from 'theme-change'
+themeChange()
 
 document.addEventListener("updateLeaderboard", function() {
 	const data = JSON.parse(document.getElementById('leaderboardData').textContent);
