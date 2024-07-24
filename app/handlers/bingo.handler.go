@@ -308,6 +308,69 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 	}))
 }
 
+func (bh *BingoHandler) handleGetBingoBoard(c echo.Context) error {
+	var bingoId, forUser int32
+	err := echo.
+		PathParamsBinder(c).
+		Int32("bingoId", &bingoId).
+		BindError()
+
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	err = echo.QueryParamsBinder(c).Int32("forUser", &forUser).BindError()
+
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	isManagement, ok := c.Get(mgmnt_key).(bool)
+	if !ok {
+		isManagement = false
+	}
+
+	uid := c.Get(user_id_key).(int32)
+	isDifferentUser := uid != forUser
+
+	if !isManagement && isDifferentUser {
+		return echo.ErrForbidden
+	}
+
+	bingo, err := bh.BingoService.GetBingo(bingoId)
+	if err != nil {
+		return err
+	}
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	// possible, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	// if err != nil {
+	// 	return err
+	// }
+
+	tiles, err := bh.TileService.LoadTilesForBingo(bingoId)
+	if err != nil {
+		return echo.ErrNotFound
+	}
+
+	bm := views.BingoDetailModel{
+		Bingo:        bingo,
+		Tiles:        tiles,
+		Participants: p,
+	}
+	board := authviews.BingoBoard(isManagement, isDifferentUser, bm, forUser)
+	return render(c, board)
+}
+
 func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 	var bingoId int32
 	err := echo.
@@ -357,7 +420,7 @@ func (bh *BingoHandler) handleGetBingoDetail(c echo.Context) error {
 		Leaderboard:          l,
 	}
 
-	bingoView := authviews.BingoDetail(isManagement, bm, uid)
+	bingoView := authviews.BingoDetail(isManagement, false, bm, uid)
 	c.Set("ISERROR", false)
 
 	c.Response().Header().Add("HX-Trigger", "updateLeaderboard")
