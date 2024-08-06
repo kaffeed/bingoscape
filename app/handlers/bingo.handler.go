@@ -253,8 +253,62 @@ func (bh *BingoHandler) handleBingoParticipation(c echo.Context) error {
 		Participants:         p,
 		Leaderboard:          l,
 	})
-	c.Response().Header().Add("HX-Trigger", "updateLeaderboard")
+	c.Response().Header().Add("HX-Trigger", "updateLeaderboard, updateTeams")
 	return render(c, bingoView)
+}
+
+func (bh *BingoHandler) handleGetParticipationViewSwitch(c echo.Context) error {
+	var bingoId int32
+	err := echo.PathParamsBinder(c).Int32("bingoId", &bingoId).BindError()
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	isAuthenticated, ok := c.Get("ISAUTHENTICATED").(bool)
+	log.Printf("ISAUTHENTICATED: %+v", isAuthenticated)
+	if !ok {
+		return errors.New("invalid type for key 'ISAUTHENTICATED'")
+	}
+
+	if !isAuthenticated {
+		return c.Redirect(http.StatusUnauthorized, "/")
+	}
+
+	isManagement, _ := c.Get(mgmnt_key).(bool)
+	if !isManagement {
+		return err
+	}
+
+	p, err := bh.BingoService.GetParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	possible, err := bh.BingoService.GetPossibleParticipants(bingoId)
+	if err != nil {
+		return err
+	}
+
+	l, err := bh.BingoService.Store.GetBingoLeaderboard(context.TODO(), int32(bingoId))
+
+	bingo, err := bh.BingoService.GetBingo(bingoId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	bvm := views.BingoDetailModel{
+		Bingo:                bingo,
+		Tiles:                []views.TileModel{},
+		PossibleParticipants: possible,
+		Participants:         p,
+		Leaderboard:          l,
+	}
+
+	uid := c.Get(user_id_key).(int32)
+
+	cmp := authviews.ChangeTeamView(isManagement, bvm, uid)
+
+	return render(c, cmp)
 }
 
 func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
@@ -299,6 +353,8 @@ func (bh *BingoHandler) removeBingoParticipation(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("could not get participants! %w", err))
 	}
+
+	c.Response().Header().Add("HX-Trigger", "updateTeams")
 
 	return render(c, components.BingoTeams(isManagement, views.BingoDetailModel{
 		Bingo:                bingo,

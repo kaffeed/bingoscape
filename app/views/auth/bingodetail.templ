@@ -1,45 +1,60 @@
 package auth
 
-import "github.com/kaffeed/bingoscape/app/views/layout"
-import "fmt"
-import "github.com/kaffeed/bingoscape/app/views/components"
-import "github.com/kaffeed/bingoscape/app/views"
+import (
+	"fmt"
+	"github.com/kaffeed/bingoscape/app/views"
+	"github.com/kaffeed/bingoscape/app/views/components"
+	"github.com/kaffeed/bingoscape/app/views/layout"
+)
 
 templ BingoDetail(isManagement, showOther bool, bingo views.BingoDetailModel, loginId int32) {
 	<div class="flex flex-col w-full">
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
 			@bingoDetailHeader(isManagement, bingo)
-			<div class="divider"></div>
-			if isManagement {
-				<div class="flex flex-col">
-					<select
-						hx-get={ fmt.Sprintf("/bingos/%d/board", bingo.ID) }
-						hx-target="#bingoBoard"
-						hx-trigger="change"
-						hx-swap="outerHTML"
-						name="forUser"
-						class="select select-bordered w-full max-w-xs"
-					>
-						<option value={ fmt.Sprintf("%d", loginId) } selected>Overview</option>
-						for p := range bingo.Participants {
-							<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
-						}
-					</select>
+			<dialog id="teamsmodal" class="modal">
+				<div class="modal-box w-11/12 max-w-5xl">
+					<h3 class="text-lg font-bold">Teams</h3>
+					@components.BingoTeams(isManagement, bingo)
+					<div class="modal-action">
+						<form method="dialog">
+							<!-- if there is a button, it will close the modal -->
+							<button class="btn">Close</button>
+						</form>
+					</div>
 				</div>
-			}
+			</dialog>
+			<div class="divider"></div>
+			@ChangeTeamView(isManagement, bingo, loginId)
 			@BingoBoard(isManagement, false, bingo, loginId)
 		</section>
-		<div class="divider"></div>
-		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
-			<div class="collapse bg-base-200">
-				<input type="checkbox"/>
-				<div class="collapse-title text-xl font-medium">Teams</div>
-				<div class="collapse-content">
-					@components.BingoTeams(isManagement, bingo)
-				</div>
-			</div>
-		</section>
 	</div>
+}
+
+templ ChangeTeamView(isManagement bool, bingo views.BingoDetailModel, loginId int32) {
+	if isManagement {
+		<div
+			id="changeteamview"
+			class="flex flex-col"
+			hx-target="#changeteamview"
+			hx-swap="outerHTML"
+			hx-trigger="updateTeams from:body"
+			hx-get={ fmt.Sprintf("/bingos/%d/participantViewSwitch", bingo.ID) }
+		>
+			<select
+				hx-get={ fmt.Sprintf("/bingos/%d/board", bingo.ID) }
+				hx-target="#bingoBoard"
+				hx-trigger="change"
+				hx-swap="outerHTML"
+				name="forUser"
+				class="select select-bordered w-full max-w-xs"
+			>
+				<option value={ fmt.Sprintf("%d", loginId) } selected>Overview</option>
+				for p := range bingo.Participants {
+					<option value={ fmt.Sprintf("%d", p.ID) }>{ p.Name }</option>
+				}
+			</select>
+		</div>
+	}
 }
 
 templ BingoBoard(isManagement, forOther bool, bingo views.BingoDetailModel, loginId int32) {
@@ -101,6 +116,10 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 							</div>
 						</div>
 					}
+					<!-- Open the modal using ID.showModal() method -->
+					<div class="w-full h-full mx-auto">
+						<button class="btn btn-primary" onclick="teamsmodal.showModal()">Show Teams</button>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -3,10 +3,10 @@ themeChange()
 
 document.addEventListener("updateLeaderboard", function() {
 	let leaderboardData = document.getElementById('leaderboardData')
-	if (!leaderboardData || !leaderboardData.textContent) {
+	const data = JSON.parse(document.getElementById('leaderboardData').textContent);
+	if (!leaderboardData || !leaderboardData.textContent || !data) {
 		return;
 	}
-	const data = JSON.parse(document.getElementById('leaderboardData').textContent);
 	const names = data.map(row => row.Name);
 	const points = data.map(row => row.Points);
 

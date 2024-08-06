@@ -1,7 +1,9 @@
 package components
 
-import "fmt"
-import "github.com/kaffeed/bingoscape/app/views"
+import (
+	"fmt"
+	"github.com/kaffeed/bingoscape/app/views"
+)
 
 templ BingoTeams(isManagement bool, bingo views.BingoDetailModel) {
 	<div class="overflow-x-auto" id="bingoTeamsView">
@@ -31,12 +33,13 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 	if len(b.Participants) == 0 {
 		<p class="py-6">Pretty empty here, huh? Try assigning a team :)</p>
 	} else {
-		<table class="table" id="bingoTable">
+		<table class="table overflow-y-auto" id="bingoTable">
 			<thead>
 				<tr>
 					<th>Team</th>
 					if isManagement {
 						<th>Stats</th>
+						<th class="float-right"></th>
 						<th class="float-right"></th>
 					}
 				</tr>
@@ -45,11 +48,7 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 				for p, stats := range b.Participants {
 					if isManagement {
 						<tr
-							class="hover cursor-pointer"
-							hx-swap="transition:true"
-							hx-get={ fmt.Sprintf("/bingos/%d/teams/%d/submissions", b.ID, p.ID) }
-							hx-target="body"
-							hx-push-url="true"
+							class="hover"
 						>
 							<td>
 								{ p.Name }
@@ -58,6 +57,17 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 								<span># Submitted:</span><span class="badge badge-info">{ fmt.Sprintf("%d", stats.Submitted) }</span>
 								<span># Need Action:</span><span class="badge badge-warning">{ fmt.Sprintf("%d", stats.NeedsAction) }</span>
 								<span># Accepted:</span><span class="badge badge-success">{ fmt.Sprintf("%d", stats.Accepted) }</span>
+							</td>
+							<td hx-disinherit="hx-get">
+								<button
+									hx-swap="transition:true"
+									hx-get={ fmt.Sprintf("/bingos/%d/teams/%d/submissions", b.ID, p.ID) }
+									hx-target="body"
+									hx-push-url="true"
+									class="btn btn-ghost text-lg float-right"
+								>
+									Submissions
+								</button>
 							</td>
 							<td hx-disinherit="hx-get">
 								<button
@@ -75,6 +85,7 @@ templ ParticipantsTable(isManagement bool, b views.BingoDetailModel) {
 							<td>
 								{ p.Name }
 							</td>
+							<th class="float-right"></th>
 							<th></th>
 						</tr>
 					}
