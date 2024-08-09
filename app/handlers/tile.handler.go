@@ -520,40 +520,19 @@ func (th *TileHandler) handleTile(c echo.Context) error {
 	c.Set("ISERROR", false)
 
 	if c.Request().Method == "PUT" {
-		primaryImageSelector := imageUrlSelectorFunction(c, "primaryImageUrl")
-		primaryImage, err := handleFileUpload(c, "file", "imagepath", primaryImageSelector(tile.Imagepath))
-		if err != nil {
-			return echo.NewHTTPError(
-				echo.ErrInternalServerError.Code,
-				fmt.Sprintf(
-					"Wrong image filetype: %s",
-					err,
-				))
+		var primaryImage, secondaryImage string
+		t := db.UpdateTileParams{
+			ID: int32(tileId),
 		}
-		secondaryImagePathSelector := imageUrlSelectorFunction(c, "secondaryImageUrl")
-		secondaryImage, err := handleFileUpload(c, "secondaryfile", "secondaryimage", secondaryImagePathSelector(tile.SecondaryImagePath))
-
-		if err != nil {
-			return echo.NewHTTPError(
-				echo.ErrInternalServerError.Code,
-				fmt.Sprintf(
-					"Wrong image filetype: %s",
-					err,
-				))
-		}
-
-		t := db.UpdateTileParams{ // TODO: Read from config
-			ID:                 int32(tileId),
-			Imagepath:          primaryImage,
-			SecondaryImagePath: secondaryImage,
-		}
-
-		err = echo.
+		err := echo.
 			FormFieldBinder(c).
+			String("primaryImageUrl", &t.Imagepath).
+			String("secondaryImageUrl", &t.SecondaryImagePath).
 			String("title", &t.Title).
 			String("description", &t.Description).
 			Int32("weight", &t.Weight).
 			BindError()
+
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error while binding form fields")
 		}

@@ -19,7 +19,6 @@ templ Base(title, username string, isAuthenticated, isManagement, isError bool, 
 			<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"/>
 			<meta name="msapplication-TileColor" content="#da532c"/>
 			<meta name="theme-color" content="#ffffff"/>
-			<script src="/index.js" defer></script>
 			<script src="https://kit.fontawesome.com/f2005f5bb8.js" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
 			<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
@@ -35,6 +34,7 @@ templ Base(title, username string, isAuthenticated, isManagement, isError bool, 
 				{ children... }
 				@components.FlashMessages(errMsgs, sucMsgs)
 			</main>
+			<script src="/index.js" defer></script>
 		</body>
 	</html>
 }
