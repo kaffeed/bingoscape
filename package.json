@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@flaticon/flaticon-uicons": "^3.2.1",
+    "sortablejs": "^1.15.2",
     "theme-change": "^2.5.0"
   }
 }
