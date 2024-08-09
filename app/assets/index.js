@@ -40,7 +40,7 @@ document.addEventListener("updateLeaderboard", function() {
 
 	let noLeaderboardText = document.getElementById('noSubmissionText');
 	const ctxElement = document.getElementById('leaderboardChart')
-	if (leaderboardData.length() == 0) {
+	if (leaderboardData.length == 0) {
 		noLeaderboardText.classList.remove('hidden')
 		ctxElement.classList.add('hidden')
 		return;
