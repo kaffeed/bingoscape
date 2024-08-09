@@ -48,7 +48,7 @@ templ BingoBoard(isManagement, forOther bool, bingo views.BingoDetailModel, logi
 	<div
 		id="bingoBoard"
 		class={ "grid" , "grid-flow-row" , fmt.Sprintf("grid-rows-%d",bingo.Rows), fmt.Sprintf("grid-cols-%d",
-		bingo.Cols), "gap-1" }
+		bingo.Cols), "gap-2" }
 	>
 		for _, t := range bingo.Tiles {
 			@tileView(isManagement, forOther, t, t.Stats(loginId))
