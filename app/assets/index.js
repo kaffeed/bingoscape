@@ -1,5 +1,32 @@
-import { themeChange } from 'theme-change'
-themeChange()
+function calculateSettingAsThemeString({ localStorageTheme, systemSettingDark }) {
+  if (localStorageTheme !== null) {
+    return localStorageTheme;
+  }
+
+  return (systemSettingDark.matches) ? "dark" : "light";
+}
+
+const localStorageTheme = localStorage.getItem("theme");
+const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+let currentThemeSetting = calculateSettingAsThemeString({ localStorageTheme, systemSettingDark });
+document.querySelector("html").setAttribute("data-theme", currentThemeSetting);
+
+const checkbox = document.getElementById("themeToggle");
+checkbox.checked = currentThemeSetting == "dark"
+checkbox.addEventListener('change', event => {
+  const newTheme = currentThemeSetting === "dark" ? "light" : "dark";
+
+  checkbox.checked = newTheme == "dark"
+  // update theme attribute on HTML to switch theme in CSS
+  document.querySelector("html").setAttribute("data-theme", newTheme);
+
+  // update in local storage
+  localStorage.setItem("theme", newTheme);
+
+  // update the currentThemeSetting in memory
+  currentThemeSetting = newTheme;
+})
 
 document.addEventListener("updateLeaderboard", function() {
 	let leaderboardData = document.getElementById('leaderboardData')
@@ -7,10 +34,22 @@ document.addEventListener("updateLeaderboard", function() {
 	if (!leaderboardData || !leaderboardData.textContent || !data) {
 		return;
 	}
+
+	let noLeaderboardText = document.getElementById('noSubmissionText');
+	const ctxElement = document.getElementById('leaderboardChart')
+	if (leaderboardData.length() == 0) {
+		noLeaderboardText.classList.remove('hidden')
+		ctxElement.classList.add('hidden')
+		return;
+	}
+
+	const ctx = ctxElement.getContext('2d');
+
 	const names = data.map(row => row.Name);
 	const points = data.map(row => row.Points);
 
-	const ctx = document.getElementById('leaderboardChart').getContext('2d');
+	ctxElement.classList.remove('hidden')
+	noLeaderboardText.classList.add('hidden')
 	new Chart(ctx, {
 		type: 'bar',
 		data: {

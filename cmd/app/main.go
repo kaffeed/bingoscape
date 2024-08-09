@@ -84,11 +84,12 @@ func main() {
 	bs := services.NewBingoService(store, connpool)
 	ts := services.NewTileService(store, connpool)
 
-	ah := handlers.NewAuthHandler(us)
-	bh := handlers.NewBingoHandler(bs, us, ts)
-	th := handlers.NewTileHandler(ts, us)
+	authHandler := handlers.NewAuthHandler(us)
+	bingoHandler := handlers.NewBingoHandler(bs, us, ts)
+	tileHandler := handlers.NewTileHandler(ts, us)
+	apiHandler := handlers.NewApiHandler(ts, us, bs)
 
-	handlers.SetupRoutes(e, ah, bh, th)
+	handlers.SetupRoutes(e, authHandler, bingoHandler, tileHandler, apiHandler)
 
 	e.Logger.Fatal(e.Start(os.Getenv("HTTP_LISTEN_ADDR")))
 }

@@ -11,21 +11,8 @@ templ BingoDetail(isManagement, showOther bool, bingo views.BingoDetailModel, lo
 	<div class="flex flex-col w-full">
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
 			@bingoDetailHeader(isManagement, bingo)
-			<dialog id="teamsmodal" class="modal">
-				<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
-					<h3 class="text-lg font-bold">Teams</h3>
-					@components.BingoTeams(isManagement, bingo)
-					<div class="modal-action">
-						<form method="dialog">
-							<!-- if there is a button, it will close the modal -->
-							<button class="btn">Close</button>
-						</form>
-					</div>
-				</div>
-			</dialog>
-			<div class="divider"></div>
-			@ChangeTeamView(isManagement, bingo, loginId)
 			@BingoBoard(isManagement, false, bingo, loginId)
+			@ChangeTeamView(isManagement, bingo, loginId)
 		</section>
 	</div>
 }
@@ -34,7 +21,7 @@ templ ChangeTeamView(isManagement bool, bingo views.BingoDetailModel, loginId in
 	if isManagement {
 		<div
 			id="changeteamview"
-			class="flex flex-col"
+			class="flex flex-col pb-5"
 			hx-target="#changeteamview"
 			hx-swap="outerHTML"
 			hx-trigger="updateTeams from:body"
@@ -77,73 +64,86 @@ templ chartData(bingo views.BingoDetailModel) {
 }
 
 templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
-	<div class="w-full flex flex-row">
-		<div class="hero min-w-screen bg-base-200 py-12 px-4">
-			<div class="hero-content text-center">
-				<div class="max-w-3xl relative">
-					<h1 class="text-5xl font-bold leading-tight mb-8">{ bingo.Title }</h1>
-					<!-- Valid Dates -->
-					<div class="grid grid-cols-2 gap-4 mb-8">
-						<div>
-							<p class="text-lg md:text-xl font-bold">Start (UTC):</p>
-							<p class="text-gray-500">{ bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") }</p>
-						</div>
-						<div>
-							<p class="text-lg md:text-xl font-bold">End (UTC):</p>
-							<p class="text-gray-500">{ bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
-						</div>
-					</div>
-					<!-- Codephrase -->
-					<p class="py-4 text-4xl md:text-2xl font-bold flex items-center justify-center mb-8">
-						<span class="mr-2">Codephrase:</span>
-						<span class="badge badge-primary">"{ bingo.Codephrase }"</span>
-					</p>
-					<!-- Description -->
-					<div class="text-left mb-8 justify-center">
-						<p class="text-lg md:text-xl font-bold">Description:</p>
-						<p class="text-gray-500">{ bingo.Description }</p>
-					</div>
-					<!-- Set as Ready Button -->
-					if isManagement {
-						@BingoVisibilityButton(bingo.ID, bingo.Active)
-						@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
-						@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
-					}
-					if !isManagement && bingo.SubmissionsClosed {
-						<div class="mx-auto">
-							<div class="badge badge-error gap-2">
-								SUBMISSIONS CLOSED
+	<div class="flex flex-col items-start justify-start">
+		<h1 class="text-5xl font-bold">{ bingo.Title }</h1>
+		<div class="flex flex-row gap gap-2">
+			<button class="btn btn-ghost text-3xl" onclick="teamsmodal.showModal()">teams</button>
+			<button class="btn btn-ghost text-3xl" onclick="statsmodal.showModal()">stats</button>
+		</div>
+	</div>
+	<dialog id="statsmodal" class="modal">
+		<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
+			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="statsmodal.close()">✕</button>
+			<div class="hero min-w-screen bg-base-200 py-12 px-4">
+				<div class="hero-content text-center">
+					<div class="max-w-3xl relative">
+						<!-- Valid Dates -->
+						<div class="grid grid-cols-2 gap-4 mb-8">
+							<div>
+								<p class="text-lg md:text-xl font-bold">Start (UTC):</p>
+								<p class="text-gray-500">{ bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") }</p>
+							</div>
+							<div>
+								<p class="text-lg md:text-xl font-bold">End (UTC):</p>
+								<p class="text-gray-500">{ bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
 							</div>
 						</div>
-					}
+						<!-- Codephrase -->
+						<p class="py-4 text-4xl md:text-2xl font-bold flex items-center justify-center mb-8">
+							<span class="mr-2">Codephrase:</span>
+							<span class="badge badge-primary">"{ bingo.Codephrase }"</span>
+						</p>
+						<!-- Description -->
+						<div class="text-left mb-8 justify-center">
+							<p class="text-lg md:text-xl font-bold">Description:</p>
+							<p class="text-gray-500">{ bingo.Description }</p>
+						</div>
+						<!-- Set as Ready Button -->
+						if isManagement {
+							<div class="flex flex-row gap-2">
+								@BingoVisibilityButton(bingo.ID, bingo.Active)
+								@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
+								@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
+							</div>
+						}
+						if !isManagement && bingo.SubmissionsClosed {
+							<div class="mx-auto">
+								<div class="badge badge-error gap-2">
+									SUBMISSIONS CLOSED
+								</div>
+							</div>
+						}
+					</div>
 				</div>
 			</div>
+			if isManagement || bingo.LeaderboardPublic {
+				<div class="hero w-full bg-base-200 py-12 px-4">
+					<div class="w-full relative">
+						<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
+						<canvas id="leaderboardChart" class="w-full h-96 hidden"></canvas>
+						<span class="mx-auto" id="noSubmissionText">No submission yet</span>
+						@chartData(bingo)
+					</div>
+				</div>
+			}
 		</div>
-		if isManagement || bingo.LeaderboardPublic {
-			<div class="hero w-full bg-base-200 py-12 px-4">
-				<div class="w-full relative">
-					<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
-					<canvas id="leaderboardChart" class="w-full h-96"></canvas>
-					@chartData(bingo)
-				</div>
-			</div>
-		}
-	</div>
-	<!-- Open the modal using ID.showModal() method -->
-	<div class="w-full h-full mx-auto">
-		<button class="btn btn-primary" onclick="teamsmodal.showModal()">Show Teams</button>
-	</div>
+		<!-- Open the modal using ID.showModal() method -->
+	</dialog>
+	<dialog id="teamsmodal" class="modal">
+		<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
+			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="teamsmodal.close()">✕</button>
+			@components.BingoTeams(isManagement, bingo)
+		</div>
+	</dialog>
 }
 
 templ BingoVisibilityButton(bingoId int32, ready bool) {
-	<label
-		class="flex justify-start gap-2"
-	>
+	<label class="flex flex-col justify-start gap-2">
 		<span class="text-lg md:text-xl font-bold gap-2">
-			Set Visibility: 
+			Visibility 
 		</span>
 		<input
-			class="toggle toggle-success pull-right"
+			class="toggle toggle-success mx-auto"
 			hx-put={ fmt.Sprintf("/bingos/%d/toggleState", bingoId) }
 			hx-swap="outerHTML"
 			hx-target="closest label"
@@ -157,13 +157,13 @@ templ BingoVisibilityButton(bingoId int32, ready bool) {
 
 templ BingoSubmissionsClosedButton(bingoId int32, submissionsClosed bool) {
 	<label
-		class="flex justify-start gap-2"
+		class="flex flex-col justify-start gap-2"
 	>
 		<span class="text-lg md:text-xl font-bold gap-2">
-			Submissions closed: 
+			Submissions 
 		</span>
 		<input
-			class="toggle toggle-error pull-right"
+			class="toggle toggle-error mx-auto"
 			hx-put={ fmt.Sprintf("/bingos/%d/toggleSubmissionsClosed", bingoId) }
 			id="submissionToggle"
 			hx-swap="outerHTML"
@@ -178,13 +178,13 @@ templ BingoSubmissionsClosedButton(bingoId int32, submissionsClosed bool) {
 
 templ BingoLeaderboardPublicButton(bingoId int32, leaderboardPublic bool) {
 	<label
-		class="flex justify-start gap-2"
+		class="flex flex-col gap-2"
 	>
-		<span class="text-lg md:text-xl font-bold gap-2">
-			Leaderboard public: 
+		<span class="text-lg md:text-xl font-bold">
+			Leaderboard
 		</span>
 		<input
-			class="toggle toggle-success pull-right"
+			class="toggle toggle-success mx-auto"
 			hx-put={ fmt.Sprintf("/bingos/%d/toggleLeaderboardPublic", bingoId) }
 			hx-swap="outerHTML"
 			hx-target="closest label"
@@ -199,21 +199,17 @@ templ BingoLeaderboardPublicButton(bingoId int32, leaderboardPublic bool) {
 templ tileView(isManagement, forOther bool, t views.TileModel, s views.TileStats) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer w-full relative border-2 border-rounded border-primary hover:border-secondary"
+		class="cursor-pointer relative border-2 border-rounded border-primary hover:border-secondary aspect-square gap-2"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
 	>
-		<div class="relative h-4/5">
-			<img src={ t.Imagepath } class="bingo-image" alt={ t.Title }/>
-			if s.HasSubmissions || s.State != "" {
-				<div class="absolute inset-0 bg-gray-900 opacity-40 rounded-md"></div>
-				<div class="absolute inset-0 flex items-center justify-center">
-					@stats(isManagement, forOther, s)
-				</div>
-			}
-		</div>
-		<div class="flex h-1/5 items-center justify-center w-full"><p class="truncate text-lg text-bold">{ t.Title }</p></div>
+		<img src={ t.Imagepath } class="bingo-image object-contain" alt={ t.Title }/>
+		if s.HasSubmissions || s.State != "" {
+			<div class="absolute inset-1 flex">
+				@stats(isManagement, forOther, s)
+			</div>
+		}
 	</div>
 }
 

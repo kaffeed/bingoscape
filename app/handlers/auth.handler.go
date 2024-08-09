@@ -199,7 +199,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		user, err := ah.UserServices.CheckUsername(c.FormValue("username"))
 		if err != nil {
 			if strings.Contains(err.Error(), "no rows in result set") {
-				setFlashmessages(c, "error", "There is no user with that email")
+				setFlashmessages(c, "error", "Problem during login, user does not exist or password is wrong")
 				c.Set("ISERROR", true)
 				return c.Redirect(http.StatusSeeOther, "/login")
 			}
@@ -218,7 +218,7 @@ func (ah *AuthHandler) loginHandler(c echo.Context) error {
 		)
 		if err != nil {
 			// In production you have to give the user a generic message
-			setFlashmessages(c, "error", "Incorrect password")
+			setFlashmessages(c, "error", "Problem during login, user does not exist or password is wrong")
 
 			return c.Redirect(http.StatusSeeOther, "/login")
 		}

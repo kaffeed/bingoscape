@@ -1,8 +1,10 @@
 package components
 
-import "fmt"
-import "github.com/kaffeed/bingoscape/app/db"
-import "github.com/kaffeed/bingoscape/app/views"
+import (
+	"fmt"
+	"github.com/kaffeed/bingoscape/app/db"
+	"github.com/kaffeed/bingoscape/app/views"
+)
 
 templ Submissions(isManagement, closed bool, s views.Submissions) {
 	for key, val := range s {
@@ -85,15 +87,15 @@ templ SubmissionHeader(isManagement bool, s views.SubmissionData) {
 templ SubmissionIcons(s db.Submissionstate) {
 	switch s {
 		case db.SubmissionstateSubmitted:
-			<div class="text-5xl text-info flex">
+			<div class="text-2xl text-info flex">
 				<i class="fa-solid fa-paper-plane"></i>
 			</div>
 		case db.SubmissionstateActionRequired:
-			<div class="text-5xl text-warning flex">
+			<div class="text-2xl text-warning flex">
 				<i class="fa-solid fa-circle-exclamation"></i>
 			</div>
 		case db.SubmissionstateAccepted:
-			<div class="text-5xl text-success flex mb-6 mx-auto">
+			<div class="text-2xl text-success flex">
 				<i class="fa-solid fa-check"></i>
 			</div>
 		default:
