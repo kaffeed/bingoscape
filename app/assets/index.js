@@ -30,8 +30,11 @@ checkbox.addEventListener('change', event => {
 
 document.addEventListener("updateLeaderboard", function() {
 	let leaderboardData = document.getElementById('leaderboardData')
+	if (!leaderboardData || !leaderboardData.textContent) {
+		return;
+	}
 	const data = JSON.parse(document.getElementById('leaderboardData').textContent);
-	if (!leaderboardData || !leaderboardData.textContent || !data) {
+	if (!data) {
 		return;
 	}
 
