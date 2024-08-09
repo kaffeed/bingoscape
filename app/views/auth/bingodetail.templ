@@ -74,58 +74,60 @@ templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
 	<dialog id="statsmodal" class="modal">
 		<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
 			<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="statsmodal.close()">✕</button>
-			<div class="hero min-w-screen bg-base-200 py-12 px-4">
-				<div class="hero-content text-center">
-					<div class="max-w-3xl relative">
-						<!-- Valid Dates -->
-						<div class="grid grid-cols-2 gap-4 mb-8">
-							<div>
-								<p class="text-lg md:text-xl font-bold">Start (UTC):</p>
-								<p class="text-gray-500">{ bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") }</p>
-							</div>
-							<div>
-								<p class="text-lg md:text-xl font-bold">End (UTC):</p>
-								<p class="text-gray-500">{ bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
-							</div>
-						</div>
-						<!-- Codephrase -->
-						<p class="py-4 text-4xl md:text-2xl font-bold flex items-center justify-center mb-8">
-							<span class="mr-2">Codephrase:</span>
-							<span class="badge badge-primary">"{ bingo.Codephrase }"</span>
-						</p>
-						<!-- Description -->
-						<div class="text-left mb-8 justify-center">
-							<p class="text-lg md:text-xl font-bold">Description:</p>
-							<p class="text-gray-500">{ bingo.Description }</p>
-						</div>
-						<!-- Set as Ready Button -->
-						if isManagement {
-							<div class="flex flex-row gap-2">
-								@BingoVisibilityButton(bingo.ID, bingo.Active)
-								@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
-								@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
-							</div>
-						}
-						if !isManagement && bingo.SubmissionsClosed {
-							<div class="mx-auto">
-								<div class="badge badge-error gap-2">
-									SUBMISSIONS CLOSED
+			<div class="w-full flex flex-row">
+				<div class="hero min-w-screen bg-base-200 py-12 px-4">
+					<div class="hero-content text-center">
+						<div class="max-w-3xl relative">
+							<!-- Valid Dates -->
+							<div class="grid grid-cols-2 gap-4 mb-8">
+								<div>
+									<p class="text-lg md:text-xl font-bold">Start (UTC):</p>
+									<p class="text-gray-500">{ bingo.Validfrom.Time.Format("Jan 2, 2006 3:04 PM") }</p>
+								</div>
+								<div>
+									<p class="text-lg md:text-xl font-bold">End (UTC):</p>
+									<p class="text-gray-500">{ bingo.Validto.Time.Format("Jan 2, 2006 3:04 PM") }</p>
 								</div>
 							</div>
-						}
+							<!-- Codephrase -->
+							<p class="py-4 text-4xl md:text-2xl font-bold flex items-center justify-center mb-8">
+								<span class="mr-2">Codephrase:</span>
+								<span class="badge badge-primary">"{ bingo.Codephrase }"</span>
+							</p>
+							<!-- Description -->
+							<div class="text-left mb-8 justify-center">
+								<p class="text-lg md:text-xl font-bold">Description:</p>
+								<p class="text-gray-500">{ bingo.Description }</p>
+							</div>
+							<!-- Set as Ready Button -->
+							if isManagement {
+								<div class="flex flex-row gap-2">
+									@BingoVisibilityButton(bingo.ID, bingo.Active)
+									@BingoSubmissionsClosedButton(bingo.ID, bingo.SubmissionsClosed)
+									@BingoLeaderboardPublicButton(bingo.ID, bingo.LeaderboardPublic)
+								</div>
+							}
+							if !isManagement && bingo.SubmissionsClosed {
+								<div class="mx-auto">
+									<div class="badge badge-error gap-2">
+										SUBMISSIONS CLOSED
+									</div>
+								</div>
+							}
+						</div>
 					</div>
 				</div>
+				if isManagement || bingo.LeaderboardPublic {
+					<div class="hero w-full bg-base-200 py-12 px-4">
+						<div class="w-full relative">
+							<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
+							<canvas id="leaderboardChart" class="w-full h-96 hidden"></canvas>
+							<span class="mx-auto" id="noSubmissionText">No submission yet</span>
+							@chartData(bingo)
+						</div>
+					</div>
+				}
 			</div>
-			if isManagement || bingo.LeaderboardPublic {
-				<div class="hero w-full bg-base-200 py-12 px-4">
-					<div class="w-full relative">
-						<h1 class="text-5xl font-bold leading-tight mb-8">Leaderboard</h1>
-						<canvas id="leaderboardChart" class="w-full h-96 hidden"></canvas>
-						<span class="mx-auto" id="noSubmissionText">No submission yet</span>
-						@chartData(bingo)
-					</div>
-				</div>
-			}
 		</div>
 		<!-- Open the modal using ID.showModal() method -->
 	</dialog>
