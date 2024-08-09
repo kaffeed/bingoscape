@@ -658,10 +658,6 @@ html {
   color: #f8fe08;
 }
 
-#bingoBoard {
-  max-height: 70dvh;
-}
-
 .bingo-image {
   width: 100%;
   height: 100%;
@@ -4048,6 +4044,10 @@ details.collapse summary::-webkit-details-marker {
 
 .h-screen {
   height: 100vh;
+}
+
+.max-h-screen {
+  max-height: 100vh;
 }
 
 .w-1\/3 {
