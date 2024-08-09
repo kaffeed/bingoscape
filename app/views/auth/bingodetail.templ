@@ -10,9 +10,8 @@ import (
 templ BingoDetail(isManagement, showOther bool, bingo views.BingoDetailModel, loginId int32) {
 	<div class="flex flex-col w-full">
 		<section class="mx-auto w-3/5 flex flex-col gap-8 text-center">
-			@bingoDetailHeader(isManagement, bingo)
+			@bingoDetailHeader(isManagement, bingo, loginId)
 			@BingoBoard(isManagement, false, bingo, loginId)
-			@ChangeTeamView(isManagement, bingo, loginId)
 		</section>
 	</div>
 }
@@ -21,7 +20,7 @@ templ ChangeTeamView(isManagement bool, bingo views.BingoDetailModel, loginId in
 	if isManagement {
 		<div
 			id="changeteamview"
-			class="flex flex-col pb-5"
+			class="flex flex-col justify-center items-center w-full"
 			hx-target="#changeteamview"
 			hx-swap="outerHTML"
 			hx-trigger="updateTeams from:body"
@@ -63,13 +62,16 @@ templ chartData(bingo views.BingoDetailModel) {
 	</script>
 }
 
-templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel) {
-	<div class="flex flex-col items-start justify-start">
-		<h1 class="text-5xl font-bold">{ bingo.Title }</h1>
-		<div class="flex flex-row gap gap-2">
-			<button class="btn btn-ghost text-3xl" onclick="teamsmodal.showModal()">teams</button>
-			<button class="btn btn-ghost text-3xl" onclick="statsmodal.showModal()">stats</button>
+templ bingoDetailHeader(isManagement bool, bingo views.BingoDetailModel, loginId int32) {
+	<div class="flex flex-row">
+		<div class="flex flex-col items-start justify-start w-full">
+			<h1 class="text-5xl font-bold">{ bingo.Title }</h1>
+			<div class="flex flex-row gap gap-2">
+				<button class="btn btn-ghost text-3xl" onclick="teamsmodal.showModal()">teams</button>
+				<button class="btn btn-ghost text-3xl" onclick="statsmodal.showModal()">stats</button>
+			</div>
 		</div>
+		@ChangeTeamView(isManagement, bingo, loginId)
 	</div>
 	<dialog id="statsmodal" class="modal">
 		<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
@@ -201,7 +203,7 @@ templ BingoLeaderboardPublicButton(bingoId int32, leaderboardPublic bool) {
 templ tileView(isManagement, forOther bool, t views.TileModel, s views.TileStats) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer relative outline-none hover:border-secondary aspect-square gap-2"
+		class="cursor-pointer relative outline-none border-transparent border-2 hover:border-secondary aspect-square gap-2"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"

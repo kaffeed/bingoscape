@@ -4335,6 +4335,10 @@ details.collapse summary::-webkit-details-marker {
   border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
 }
 
+.border-transparent {
+  border-color: transparent;
+}
+
 .border-warning {
   --tw-border-opacity: 1;
   border-color: var(--fallback-wa,oklch(var(--wa)/var(--tw-border-opacity)));
@@ -4446,10 +4450,6 @@ details.collapse summary::-webkit-details-marker {
 
 .pb-2 {
   padding-bottom: 0.5rem;
-}
-
-.pb-5 {
-  padding-bottom: 1.25rem;
 }
 
 .pb-\[4px\] {
