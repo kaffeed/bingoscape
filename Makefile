@@ -66,6 +66,7 @@ build:
 
 # start the application in development
 dev:
+	@make generate-code
 	@make -j5 templ server watch-assets watch-esbuild sync_assets
 
 ## test: run unit tests

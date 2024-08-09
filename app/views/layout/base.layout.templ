@@ -31,7 +31,7 @@ templ Base(title, username string, isAuthenticated, isManagement, isError bool, 
 					@components.Navbar(username, isAuthenticated, isManagement)
 				}
 			</header>
-			<main class={ templ.KV("pt-40", !isError), "flex-grow" }>
+			<main class={ templ.KV("pt-10", !isError), "flex-grow" }>
 				{ children... }
 				@components.FlashMessages(errMsgs, sucMsgs)
 			</main>

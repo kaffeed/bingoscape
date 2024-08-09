@@ -48,7 +48,7 @@ templ BingoBoard(isManagement, forOther bool, bingo views.BingoDetailModel, logi
 	<div
 		id="bingoBoard"
 		class={ "grid" , "grid-flow-row" , fmt.Sprintf("grid-cols-%d",
-		bingo.Cols), "gap-2" }
+		bingo.Cols), "gap-2", "mx-auto" }
 	>
 		for _, t := range bingo.Tiles {
 			@tileView(isManagement, forOther, t, t.Stats(loginId))
@@ -201,7 +201,7 @@ templ BingoLeaderboardPublicButton(bingoId int32, leaderboardPublic bool) {
 templ tileView(isManagement, forOther bool, t views.TileModel, s views.TileStats) {
 	<div
 		hx-get={ fmt.Sprintf("/tiles/%d", t.ID) }
-		class="cursor-pointer relative border-2 border-rounded border-primary hover:border-secondary aspect-square gap-2"
+		class="cursor-pointer relative outline-none hover:border-secondary aspect-square gap-2"
 		hx-swap="transition:true"
 		hx-target="body"
 		hx-push-url="true"
