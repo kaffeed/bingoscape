@@ -49,7 +49,7 @@ jobs:
         script: |
           cd /var/www/deployments/bin
           ls -l
-          for env in ${{ vars.CLAN_INSTANCES }};
+          for env in ${{ secrets.CLAN_INSTANCES }};
           do
             echo "${{ secrets.SUDO_PWD }}" | sudo -S systemctl stop $env
             if [ ! -d /var/www/$env ] ; then
