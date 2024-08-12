@@ -1,4 +1,5 @@
 # Bingoscape
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T5108046)
 
 Bingoscape is an oldschool Runescape clan bingo management tool built with Go, Templ, htmx, and Tailwind CSS. This tool helps you organize and manage bingo events for your clan, providing an intuitive and interactive interface for tracking progress and results.
 
