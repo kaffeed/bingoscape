@@ -1,6 +1,6 @@
 /*@import url('https://cdn-uicons.flaticon.com/2.4.0/uicons-regular-rounded/css/uicons-regular-rounded.css')*/
 
-/*! tailwindcss v3.4.7 | MIT License | https://tailwindcss.com*/
+/*! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com*/
 
 /*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
@@ -506,14 +506,6 @@ video {
 
 html {
   -webkit-tap-highlight-color: transparent;
-}
-
-* {
-  scrollbar-color: color-mix(in oklch, currentColor 35%, transparent) transparent;
-}
-
-*:hover {
-  scrollbar-color: color-mix(in oklch, currentColor 60%, transparent) transparent;
 }
 
 :root {
@@ -1994,8 +1986,8 @@ html {
           appearance: none;
   height: 3rem;
   min-height: 3rem;
-  padding-inline-start: 1rem;
-  padding-inline-end: 2.5rem;
+  padding-left: 1rem;
+  padding-right: 2.5rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
   line-height: 2;
@@ -2962,10 +2954,6 @@ details.collapse summary::-webkit-details-marker {
   margin-inline-start: -1px;
 }
 
-.join > :where(*:not(:first-child)):is(.btn) {
-  margin-inline-start: calc(var(--border-btn) * -1);
-}
-
 .join-item:focus {
   isolation: isolate;
 }
@@ -3345,7 +3333,7 @@ details.collapse summary::-webkit-details-marker {
   transform: rotateY(0deg);
 }
 
-.table:where([dir="rtl"], [dir="rtl"] *) {
+:is([dir="rtl"] .table) {
   text-align: right;
 }
 
@@ -3371,7 +3359,7 @@ details.collapse summary::-webkit-details-marker {
   background-color: var(--fallback-b3,oklch(var(--b3)/var(--tw-bg-opacity)));
 }
 
-.table :where(thead tr, tbody tr:not(:last-child), tbody tr:first-child:last-child) {
+.table :where(thead tr, tbody tr:not(:last-child),tbody tr:first-child:last-child) {
   border-bottom-width: 1px;
   --tw-border-opacity: 1;
   border-bottom-color: var(--fallback-b2,oklch(var(--b2)/var(--tw-border-opacity)));
@@ -3715,18 +3703,10 @@ details.collapse summary::-webkit-details-marker {
   margin-top: -1px;
 }
 
-.join.join-vertical > :where(*:not(:first-child)):is(.btn) {
-  margin-top: calc(var(--border-btn) * -1);
-}
-
 .join.join-horizontal > :where(*:not(:first-child)) {
   margin-top: 0px;
   margin-bottom: 0px;
   margin-inline-start: -1px;
-}
-
-.join.join-horizontal > :where(*:not(:first-child)):is(.btn) {
-  margin-inline-start: calc(var(--border-btn) * -1);
 }
 
 .menu-horizontal > li:not(.menu-title) > details > ul {
@@ -3839,7 +3819,6 @@ details.collapse summary::-webkit-details-marker {
 
 .tooltip:before {
   max-width: 20rem;
-  white-space: normal;
   border-radius: 0.25rem;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -4289,6 +4268,10 @@ details.collapse summary::-webkit-details-marker {
 
 .overflow-y-auto {
   overflow-y: auto;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
 }
 
 .rounded {

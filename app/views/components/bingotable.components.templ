@@ -91,7 +91,7 @@ templ bingoTableRow(bingo db.Bingo, isManagement bool, _ *time.Location) {
 			<div class="font-bold">{ bingo.Codephrase }</div>
 		</td>
 		<td>
-			<span class="badge badge-ghost badge-sm">{ fmt.Sprintf("%d x %d", bingo.Rows, bingo.Cols) }</span>
+			<span class="badge badge-ghost badge-sm whitespace-nowrap">{ fmt.Sprintf("%d x %d", bingo.Rows, bingo.Cols) }</span>
 		</td>
 		<td>
 			if bingo.SubmissionsClosed {
