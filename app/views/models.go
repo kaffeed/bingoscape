@@ -22,17 +22,17 @@ type SubmissionData struct {
 
 type BingoDetailModel struct {
 	db.Bingo
-	Tiles                []TileModel
-	PossibleParticipants PossibleBingoParticipants
-	Participants         BingoParticipants
-	Leaderboard          []db.GetBingoLeaderboardRow
+	Tiles                []TileModel                 `json:"tiles,omitempty"`
+	PossibleParticipants PossibleBingoParticipants   `json:"possible_participants,omitempty"`
+	Participants         BingoParticipants           `json:"participants,omitempty"`
+	Leaderboard          []db.GetBingoLeaderboardRow `json:"leaderboard,omitempty"`
 }
 
 type TileModel struct {
 	db.Tile
-	Submissions      Submissions
-	Templates        []db.TemplateTile
-	SubmissionClosed bool
+	Submissions      Submissions       `json:"submissions,omitempty"`
+	Templates        []db.TemplateTile `json:"templates,omitempty"`
+	SubmissionClosed bool              `json:"submission_closed,omitempty"`
 }
 
 type TileStats struct {

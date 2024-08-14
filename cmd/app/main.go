@@ -53,7 +53,8 @@ func main() {
 	imageGroup := e.Group("/img")
 	imageGroup.Use(middleware.Static(p))
 
-	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler
+	e.HTTPErrorHandler = handlers.CustomHTTPErrorHandler // FIXME: That's not so
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 

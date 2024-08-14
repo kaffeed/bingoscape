@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"crypto/subtle"
-
 	"github.com/kaffeed/bingoscape/app/services"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func basicAuthValidatorFunc(us *services.UserService) middleware.BasicAuthValidator {
@@ -15,11 +14,16 @@ func basicAuthValidatorFunc(us *services.UserService) middleware.BasicAuthValida
 			return false, err
 		}
 
-		if subtle.ConstantTimeCompare([]byte(password), []byte(user.Password)) == 1 {
-			c.Set(user_id_key, user.ID)
-			return true, nil
+		err = bcrypt.CompareHashAndPassword(
+			[]byte(user.Password),
+			[]byte(password),
+		)
+
+		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+			return false, nil
 		}
 
-		return false, nil
+		c.Set(user_key, user)
+		return true, nil
 	}
 }
