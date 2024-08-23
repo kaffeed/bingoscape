@@ -16,6 +16,7 @@ import (
 	"github.com/kaffeed/bingoscape/app/services"
 	"github.com/kaffeed/bingoscape/public"
 	"github.com/labstack/echo-contrib/echoprometheus"
+	"github.com/labstack/echo-contrib/jaegertracing"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -50,6 +51,9 @@ func main() {
 	defer connpool.Close()
 	p := filepath.Join(os.Getenv("IMAGE_PATH"))
 	setupImageDirectories(p)
+
+	c := jaegertracing.New(e, nil)
+	defer c.Close()
 
 	imageGroup := e.Group("/img")
 	imageGroup.Use(middleware.Static(p))
