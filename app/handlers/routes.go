@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func setupNonAuthRoutes(e *echo.Echo, ah *AuthHandler) {
+	e.GET("/metrics", echoprometheus.NewHandler())
+
 	e.GET("/", ah.flagsMiddleware(ah.homeHandler))
 	e.GET("/login", ah.flagsMiddleware(ah.loginHandler))
 	e.POST("/login", ah.flagsMiddleware(ah.loginHandler))

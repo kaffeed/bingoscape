@@ -15,6 +15,7 @@ import (
 	"github.com/kaffeed/bingoscape/app/handlers"
 	"github.com/kaffeed/bingoscape/app/services"
 	"github.com/kaffeed/bingoscape/public"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -57,6 +58,7 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(echoprometheus.NewMiddleware(os.Getenv("BINGOSCAPE_INSTANCE_NAME")))
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:       "assets", // because files are located in `assets` directory in `webAssets` fs
