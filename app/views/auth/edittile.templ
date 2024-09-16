@@ -12,10 +12,20 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 	<section class="mx-auto w-3/5 flex flex-col gap-8 text-center" id="editTileView">
 		<div class="mx-auto w-full flex">
 			<a href={ templ.URL(fmt.Sprintf("/bingos/%d", tm.BingoID)) } class="btn btn-sm md:btn-md gap-2 lg:gap-3">
-				<svg class="h-6 w-6 fill-current md:h-8 md:w-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+				<svg
+					class="h-6 w-6 fill-current md:h-8 md:w-8"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+				>
 					<path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path>
 				</svg>
-				<div class="flex flex-col items-start"><span class="text-base-content/50 hidden text-xs font-normal md:block">Back</span> <span>Bingo</span></div>
+				<div class="flex flex-col items-start">
+					<span
+						class="text-base-content/50 hidden text-xs font-normal md:block"
+					>Back</span> <span>Bingo</span>
+				</div>
 			</a>
 		</div>
 		<div class="card lg:card-side bg-base-100 shadow-xl w-full">
@@ -26,11 +36,37 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 			<div class="card-body w-full flex flex-col">
 				if !isManagement {
 					<h2 class="card-title">{ tm.Tile.Title }</h2>
-					<span class="badge badge-secondary flex gap-2 items-center"><i class="fa-solid fa-weight-hanging"></i> { fmt.Sprintf(" %d xp", tm.Tile.Weight) }</span>
+					<span class="badge badge-secondary flex gap-2 items-center">
+						<i class="fa-solid fa-weight-hanging"></i> { 
+				fmt.Sprintf(" %d xp", tm.Tile.Weight) }
+					</span>
 					<p>{ tm.Tile.Description }</p>
 				} else {
 					@EditTile(isManagement, tm)
 					<div hx-get="/tiles/templates"></div>
+					<div class="flex flex-col items-start justify-start w-full">
+						<button class="btn btn-ghost text-3xl" onclick="editgoalmodal.showModal()">goals</button>
+					</div>
+					<dialog id="editgoalmodal" class="modal">
+						<div class="modal-box w-11/12 max-w-5xl h-11/12 max-h-5xl">
+							<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onclick="statsmodal.close()">✕</button>
+							<div class="w-full flex flex-row">
+								<div class="hero min-w-screen bg-base-200 py-12 px-4">
+									<div class="text-center">
+										<div class="max-w-3xl relative">
+											<!-- Valid Dates -->
+											<div class="grid grid-cols-2 gap-4 mb-8">
+												for _, goal := range tm.Goals {
+													@Goal(goal)
+												}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- Open the modal using ID.showModal() method -->
+					</dialog>
 				}
 			</div>
 		</div>
@@ -43,10 +79,25 @@ templ Tile(isManagement bool, tm views.TileModel, loginId int32) {
 	</section>
 }
 
+templ Goal(goal db.TileGoal) {
+	<div class="grid grid-cols-2 gap-4 mb-8">
+		<div>
+			<p class="text-lg md:text-xl font-bold">Title:</p>
+			<p class="text-gray-500">{ goal.GoalTitle }</p>
+		</div>
+		<div>
+			<p class="text-lg md:text-xl font-bold">Target</p>
+			<p class="text-gray-500">{ fmt.Sprintf("%d",goal.TargetValue) }</p>
+		</div>
+	</div>
+}
+
 templ carouselItem(id, path, ref string) {
 	<div id={ id } class="carousel-item relative w-full aspect-auto">
 		<img src={ path } class="object-contain mx-auto"/>
-		<div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2 opacity-0 hover:opacity-100">
+		<div
+			class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2 opacity-0 hover:opacity-100"
+		>
 			<a href={ templ.URL(ref) } class="btn btn-circle">❮</a>
 			<a href={ templ.URL(ref) } class="btn btn-circle">❯</a>
 		</div>
@@ -113,7 +164,8 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 				type="text"
 				name="primaryImageUrl"
 				required
-				disabled?={ !isManagement }
+				disabled?={ 
+			!isManagement }
 				if !isManagement {
 					value="disabled"
 				} else {
@@ -130,7 +182,8 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 				type="text"
 				name="secondaryImageUrl"
 				required
-				disabled?={ !isManagement }
+				disabled?={ 
+			!isManagement }
 				if !isManagement {
 					value="disabled"
 				} else {
@@ -141,12 +194,7 @@ templ editTileFormControls(isManagement bool, tile views.TileModel) {
 	</div>
 	<label class="flex flex-col justify-start gap-2">
 		Save as Template:
-		<input
-			class="checkbox checkbox-primary"
-			type="checkbox"
-			name="saveAsTemplate"
-			disabled?={ !isManagement }
-		/>
+		<input class="checkbox checkbox-primary" type="checkbox" name="saveAsTemplate" disabled?={ !isManagement }/>
 	</label>
 	<input type="hidden" name="imagepath" value={ tile.Imagepath }/>
 	<input type="hidden" name="secondaryimage" value={ tile.SecondaryImagePath }/>

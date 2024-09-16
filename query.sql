@@ -161,3 +161,6 @@ select submissions_closed from public.bingos where id = $1;
 
 -- name: GetRandomTemplates :many
 select * from public.template_tiles TABLESAMPLE SYSTEM_ROWS($1::integer);
+
+-- name: AddGoalToTile :exec
+insert into public.tile_goals (tile_id, goal_title, target_value) values ($1, $2, $3);

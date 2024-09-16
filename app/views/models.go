@@ -33,6 +33,7 @@ type TileModel struct {
 	Submissions      Submissions       `json:"submissions,omitempty"`
 	Templates        []db.TemplateTile `json:"templates,omitempty"`
 	SubmissionClosed bool              `json:"submission_closed,omitempty"`
+	Goals            []db.TileGoal     `json:"goals,omitempty"`
 }
 
 type TileStats struct {

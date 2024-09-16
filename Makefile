@@ -33,6 +33,11 @@ server:
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
+
+# run sqlc
+gen-sqlc:
+	@go run github.com/sqlc-dev/sqlc/cmd/sqlc@latest generate
+
 # run tailwindcss to generate the styles.css bundle in watch mode.
 watch-assets:
 	@npx tailwindcss -i app/assets/app.css -o ./public/assets/styles.css --watch   
